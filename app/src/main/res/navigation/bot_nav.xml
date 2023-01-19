@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/bot_nav"
+    app:startDestination="@id/bluetoothFragment">
+
+    <fragment
+        android:id="@+id/bluetoothFragment"
+        android:name="com.example.ay22_23s2mdpgrp9.bluetooth.BluetoothFragment"
+        android:label="Bluetooth"
+        tools:layout="@layout/fragment_bluetooth" />
+    <fragment
+        android:id="@+id/statusFragment"
+        android:name="com.example.ay22_23s2mdpgrp9.status.StatusFragment"
+        android:label="Status"
+        tools:layout="@layout/fragment_status" />
+    <fragment
+        android:id="@+id/mapConfigFragment"
+        android:name="com.example.ay22_23s2mdpgrp9.mapconfig.MapConfigFragment"
+        android:label="Map Configuration"
+        tools:layout="@layout/fragment_map_config" />
+    <fragment
+        android:id="@+id/controllerFragment"
+        android:name="com.example.ay22_23s2mdpgrp9.controller.ControllerFragment"
+        android:label="Controller"
+        tools:layout="@layout/fragment_controller" />
+</navigation>
