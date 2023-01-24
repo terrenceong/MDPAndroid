@@ -7,10 +7,13 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import com.example.ay22_23s2mdpgrp9.R;
+import com.example.ay22_23s2mdpgrp9.constant.Constant;
 
 public class StatusFragment extends Fragment {
+    private ImageView determinedImageIV;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -20,6 +23,9 @@ public class StatusFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_status, container, false);
+       View view = inflater.inflate(R.layout.fragment_status, container, false);
+        determinedImageIV = (ImageView) view.findViewById(R.id.determinedPhotoIv);
+        determinedImageIV.setImageResource(Constant.imageMapping.get(40));
+       return view;
     }
 }
