@@ -25,7 +25,7 @@ public class StatusFragment extends Fragment {
         // Inflate the layout for this fragment
        View view = inflater.inflate(R.layout.fragment_status, container, false);
         determinedImageIV = (ImageView) view.findViewById(R.id.determinedPhotoIv);
-        determinedImageIV.setImageResource(Constant.imageMapping.get(40));
+        determinedImageIV.setImageResource(Constant.idMapping.get(30));
        return view;
     }
 }
