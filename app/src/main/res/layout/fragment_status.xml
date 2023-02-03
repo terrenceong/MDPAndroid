@@ -3,133 +3,28 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".status.StatusFragment">
+    android:layout_height="match_parent">
 
-    <com.example.ay22_23s2mdpgrp9.mapconfig.Grid
-        android:id="@+id/grid"
+    <TableLayout
+        android:id="@+id/mapTable"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="500dp"
+        android:elevation="2dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0" />
 
-    <LinearLayout
-        android:layout_width="240dp"
-        android:layout_height="100dp"
-        android:layout_marginBottom="224dp"
-        android:background="@drawable/rectangle"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.924"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <ImageView
-            android:id="@+id/obstacle1"
-            android:layout_width="40px"
-            android:layout_height="40px"
-            android:layout_margin="15dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/obstacle2"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-
-            app:srcCompat="@drawable/obstacle_1_n" />
-
-        <ImageView
-            android:id="@+id/obstacle2"
-            android:layout_width="40px"
-            android:layout_height="40px"
-            android:layout_margin="15dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/obstacle3"
-            app:layout_constraintHorizontal_bias="0.95"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.65"
-            app:srcCompat="@drawable/obstacle_2_n" />
-
-        <ImageView
-            android:id="@+id/obstacle3"
-            android:layout_width="40px"
-            android:layout_height="40px"
-            android:layout_margin="15dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.734"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.65"
-            app:srcCompat="@drawable/obstacle_3_n" />
-
-        <ImageView
-            android:id="@+id/obstacle4"
-            android:layout_width="40px"
-            android:layout_height="40px"
-            android:layout_margin="15dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.15"
-            app:layout_constraintStart_toEndOf="@+id/obstacle3"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.65"
-            app:srcCompat="@drawable/obstacle_4_n" />
-
-        <ImageView
-            android:id="@+id/obstacle5"
-            android:layout_width="40px"
-            android:layout_height="40px"
-            android:layout_margin="15dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.2"
-            app:layout_constraintStart_toEndOf="@+id/obstacle4"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.65"
-            app:srcCompat="@drawable/obstacle_5_n" />
-
-    </LinearLayout>
-
     <ImageView
-        android:id="@+id/car"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.55"
-        app:srcCompat="@drawable/car" />
-
-    <Button
-        android:id="@+id/sendObstaclesButton"
-        android:layout_width="130dp"
-        android:layout_height="60dp"
-        android:text="Send Obstacles"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.943"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.836" />
-
-    <Button
-        android:id="@+id/button_second"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Previous"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.91"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.928" />
+        android:id="@+id/imgRobot"
+        android:layout_width="44dp"
+        android:layout_height="43dp"
+        android:elevation="3dp"
+        android:visibility="invisible"
+        app:srcCompat="@drawable/car"
+        tools:ignore="MissingConstraints" />
 
     <ImageButton
         android:id="@+id/forwardButton"
@@ -139,10 +34,10 @@
         android:src="@drawable/ic_arrow_move_forward"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.214"
+        app:layout_constraintHorizontal_bias="0.205"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.636" />
+        app:layout_constraintVertical_bias="0.774" />
 
     <ImageButton
         android:id="@+id/turnLeftButton"
@@ -152,10 +47,10 @@
         android:src="@drawable/ic_arrow_move_left"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.085"
+        app:layout_constraintHorizontal_bias="0.079"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.735" />
+        app:layout_constraintVertical_bias="0.851" />
 
     <ImageButton
         android:id="@+id/turnRightButton"
@@ -165,10 +60,10 @@
         android:src="@drawable/ic_arrow_move_right"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.348"
+        app:layout_constraintHorizontal_bias="0.328"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.735" />
+        app:layout_constraintVertical_bias="0.851" />
 
     <ImageButton
         android:id="@+id/reverseButton"
@@ -178,20 +73,107 @@
         android:src="@drawable/ic_arrow_move_backward"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.214"
+        app:layout_constraintHorizontal_bias="0.205"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/forwardButton"
-        app:layout_constraintVertical_bias="0.375" />
+        app:layout_constraintVertical_bias="0.523" />
 
-
-    <ImageView
-        android:id="@+id/determinedPhotoIv"
-        android:layout_width="214dp"
-        android:layout_height="193dp"
+    <LinearLayout
+        android:layout_width="100dp"
+        android:layout_height="140dp"
+        android:layout_marginBottom="64dp"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.639"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <RadioGroup
+            android:id="@+id/spawnGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:checkedButton="@id/btnObstacle">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Select Spawn" />
+
+            <RadioButton
+                android:id="@+id/btnRobot"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:text="Robot"
+                android:buttonTint="@color/pinkyRed"/>
+
+            <RadioButton
+                android:id="@+id/btnObstacle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:text="Obstacle"
+                android:buttonTint="@color/pinkyRed"/>
+
+        </RadioGroup>
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="200dp"
+        android:layout_height="150dp"
+        android:layout_marginTop="500dp"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.061"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/txtRoboStatus"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
+            android:background="@drawable/border"
+            android:text="robo_status" />
+
+        <TextView
+            android:id="@+id/txtRoboDirection"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginBottom="5dp"
+            android:background="@drawable/border"
+            android:text="robo_direction" />
+
+        <TextView
+            android:id="@+id/txtRoboPosition"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginBottom="5dp"
+            android:background="@drawable/border"
+            android:text="robo_position" />
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btnReset"
+        style="?android:attr/buttonBarButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:backgroundTint="@color/pinkyRed"
+        android:onClick="onResetClick"
+        android:text="reset"
+        android:textColor="@color/black"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.95"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.325" />
+        app:layout_constraintVertical_bias="0.878" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

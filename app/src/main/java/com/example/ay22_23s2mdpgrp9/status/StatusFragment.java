@@ -19,7 +19,6 @@ import android.content.ClipData;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.os.Bundle;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.DragEvent;
@@ -36,11 +35,9 @@ import android.widget.RadioGroup;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.content.res.AppCompatResources;
-import androidx.fragment.app.Fragment;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -49,18 +46,14 @@ import com.example.ay22_23s2mdpgrp9.Arena.ArenaButton;
 import com.example.ay22_23s2mdpgrp9.Arena.MyDragShadowBuilder;
 import com.example.ay22_23s2mdpgrp9.Arena.ObstacleInfo;
 
-import java.nio.charset.StandardCharsets;
-import java.sql.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Set;
 
 
 import com.example.ay22_23s2mdpgrp9.R;
 import com.example.ay22_23s2mdpgrp9.bluetooth.Packet;
-import com.example.ay22_23s2mdpgrp9.constant.Constant;
 
 public class StatusFragment extends Fragment {
 
@@ -105,7 +98,7 @@ public class StatusFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-       View view = inflater.inflate(R.layout.map_page, container, false);
+       View view = inflater.inflate(R.layout.fragment_status, container, false);
         //determinedImageIV = (ImageView) view.findViewById(R.id.determinedPhotoIv);
         //determinedImageIV.setImageResource(Constant.imageMapping.get(40));
 
@@ -147,8 +140,8 @@ public class StatusFragment extends Fragment {
 
     private void initMap(TableLayout mapTable) {
         // set cell height and width
-        btnH = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 22, getResources().getDisplayMetrics());
-        btnW = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 22, getResources().getDisplayMetrics());
+        btnH = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 25, getResources().getDisplayMetrics());
+        btnW = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 25, getResources().getDisplayMetrics());
 
         // default background for cell
         btnBG = AppCompatResources.getDrawable(this.requireContext(), R.drawable.btn_background);
@@ -156,7 +149,7 @@ public class StatusFragment extends Fragment {
         // 20x20 map
         for (y = 19; y >= 0; y--) {
             TableRow row = new TableRow(this.getContext());
-            //row.setHorizontalGravity(Gravity.CENTER_HORIZONTAL);
+            row.setHorizontalGravity(Gravity.CENTER_HORIZONTAL);
 
             for (x = 0; x < 20; x++) {
                 ArenaButton btn = new ArenaButton(this.getContext(), x, y);
@@ -242,7 +235,7 @@ public class StatusFragment extends Fragment {
 
             // adds obstacle otherwise
             if (spawn.equals("Obstacle")) {
-                for (int obsID = 1; obsID <= 400; obsID++) {
+                for (int obsID = 1; obsID <= 8; obsID++) {
                     // finds next obstacle id
                     if (!obstacles.containsKey(obsID)) {
                         queryObstacleDirection(obsID,this.id, this.x,this.y);
@@ -484,7 +477,7 @@ public class StatusFragment extends Fragment {
         // set robot drawing position to bottom left instead of top left
         imgRobot.setX(btn.getX());
         // 24 for status bar and 50 for placing it 2 buttons up
-        imgRobot.setY(pt[1] - dpToPixels(21) - dpToPixels(22));
+        imgRobot.setY(pt[1] - dpToPixels(25) - dpToPixels(26));
 
         //String pos = "(" + String.valueOf(robotX) + "," + String.valueOf(robotY) + ")";
         setRobotPosition(getPositionString());
@@ -573,19 +566,19 @@ public class StatusFragment extends Fragment {
         int multiplier = forward ? 1 : -1;
         switch (robotDirection) {
             case NORTH:
-                imgRobot.setY(imgRobot.getY() - dpToPixels(22) * multiplier);
+                imgRobot.setY(imgRobot.getY() - dpToPixels(25) * multiplier);
                 robotY += (forward) ? 1 : -1;
                 break;
             case SOUTH:
-                imgRobot.setY(imgRobot.getY() + dpToPixels(22) * multiplier);
+                imgRobot.setY(imgRobot.getY() + dpToPixels(25) * multiplier);
                 robotY += (forward) ? -1 : 1;
                 break;
             case WEST:
-                imgRobot.setX(imgRobot.getX() - dpToPixels(22) * multiplier);
+                imgRobot.setX(imgRobot.getX() - dpToPixels(25) * multiplier);
                 robotX += (forward) ? -1 : 1;
                 break;
             case EAST:
-                imgRobot.setX(imgRobot.getX() + dpToPixels(22) * multiplier);
+                imgRobot.setX(imgRobot.getX() + dpToPixels(25) * multiplier);
                 robotX += (forward) ? 1 : -1;
                 break;
 
