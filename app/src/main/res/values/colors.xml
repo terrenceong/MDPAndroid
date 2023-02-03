@@ -10,4 +10,7 @@
     <color name="navy">#003399</color>
     <color name="pinkyRed">#ff6666</color>
     <color name="pinky">#ff9999</color>
+    <color name="map_obs_color">#000000</color>
+    <color name="map_btn_color">#888888</color>
+    <color name="btn_connect_red">#FF0000</color>
 </resources>
