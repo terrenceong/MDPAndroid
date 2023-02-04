@@ -77,10 +77,10 @@ public class BluetoothFragment extends Fragment {
 
     private Button sendMessageBtn;
 
-    private BluetoothConnectionService bluetoothConnectionService;
+//    private BluetoothConnectionService bluetoothConnectionService;
     private static final UUID MY_UUID_INSECURE =
             UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-    private BluetoothDevice connectedDevice;
+//    private BluetoothDevice connectedDevice;
     private BluetoothAdapter btAdapter;
 
     private ArrayList<BluetoothDevice> btPairedDevices = new ArrayList<>();
@@ -95,7 +95,7 @@ public class BluetoothFragment extends Fragment {
 
     private DeviceListAdapter btPairedDeviceAdapter;
 
-    private boolean hasBtConnectedDevice = false;
+//    private boolean hasBtConnectedDevice = false;
 
     private static final String TAG = "BluetoothFragment";
 
@@ -227,15 +227,13 @@ public class BluetoothFragment extends Fragment {
         @Override
         public void onReceive(Context context, Intent intent)  {
             Log.d(TAG, "Connection status receiver : Bluetooth Device Connected");
-            hasBtConnectedDevice = intent.getBooleanExtra("btConnected",false);
-            connectedDevice = intent.getParcelableExtra("btConnectedDevice");
-            MainActivity.hasBtConnectedDevice = hasBtConnectedDevice;
-            MainActivity.connectedDevice = connectedDevice;
-                if(connectedDevice.getName()!=null){
-                    Toast.makeText(context,"Connected to:"+connectedDevice.getName(),Toast.LENGTH_SHORT).show();
+            MainActivity.hasBtConnectedDevice = intent.getBooleanExtra("btConnected",false);
+            MainActivity.connectedDevice = intent.getParcelableExtra("btConnectedDevice");
+                if(MainActivity.connectedDevice.getName()!=null){
+                    Toast.makeText(context,"Connected to:"+MainActivity.connectedDevice.getName(),Toast.LENGTH_SHORT).show();
                 }
                 else{
-                    Toast.makeText(context,"Connected to:"+connectedDevice.getAddress(),Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context,"Connected to:"+MainActivity.connectedDevice.getAddress(),Toast.LENGTH_SHORT).show();
                 }
         }
     };
@@ -244,13 +242,10 @@ public class BluetoothFragment extends Fragment {
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.d(TAG, "Receiver Incoming message");
-            if(connectedDevice==null && MainActivity.hasBtConnectedDevice){
-                connectedDevice= MainActivity.connectedDevice;
-            }
-            String header = connectedDevice.getAddress();
+            String header = MainActivity.connectedDevice.getAddress();
             String msg = intent.getStringExtra("receivingMsg");
-            if(connectedDevice.getName()!=null){
-                    header = connectedDevice.getName();
+            if(MainActivity.connectedDevice.getName()!=null){
+                    header = MainActivity.connectedDevice.getName();
             }
             chatTv.append(header + ": " + msg + "\n");
             MainActivity.serialChat = new StringBuilder().append(chatTv.getText());
@@ -306,9 +301,8 @@ public class BluetoothFragment extends Fragment {
                     getActivity().requestPermissions(new String[]{Manifest.permission.BLUETOOTH_SCAN}, BT_ENABLE_REQUEST_CODE); //Any number
                 }
                 btAdapter.cancelDiscovery();
-                connectedDevice = btPairedDevices.get(i);
-                bluetoothConnectionService = new BluetoothConnectionService(getActivity());
-                MainActivity.globalBluetoothService = bluetoothConnectionService;
+                MainActivity.connectedDevice = btPairedDevices.get(i);
+                MainActivity.globalBluetoothService = new BluetoothConnectionService(getActivity());
                 startConnection();
             }
         });
@@ -317,10 +311,10 @@ public class BluetoothFragment extends Fragment {
     }
     private void startBtConnection(BluetoothDevice device,UUID uuid){
         Log.d(TAG,"startBtConnection: Initializing RFCOM Bluetooth Connection");
-        bluetoothConnectionService.startConnectThread(device,uuid);
+        MainActivity.globalBluetoothService.startConnectThread(device,uuid);
     }
     public void startConnection(){
-        startBtConnection(connectedDevice,MY_UUID_INSECURE);
+        startBtConnection(MainActivity.connectedDevice,MY_UUID_INSECURE);
     }
 
 
@@ -346,16 +340,13 @@ public class BluetoothFragment extends Fragment {
         sendMessageBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(!btAdapter.isEnabled() || !MainActivity.hasBtConnectedDevice){
+                if(!btAdapter.isEnabled() || !MainActivity.hasBtConnectedDevice || MainActivity.globalBluetoothService==null){
                     Toast.makeText(getContext(),"Connection not established",Toast.LENGTH_LONG).show();
                     return;
                 }
-                if(bluetoothConnectionService==null){
-                    bluetoothConnectionService = MainActivity.globalBluetoothService;
-                }
                     String text = messageEt.getText().toString().trim();
                     byte[] bytes = text.getBytes(Charset.defaultCharset());
-                    bluetoothConnectionService.write(bytes);
+                    MainActivity.globalBluetoothService.write(bytes);
                     messageEt.setText("");
                     chatTv.append("This Device: " + text + "\n");
                     MainActivity.serialChat = new StringBuilder().append(chatTv.getText());
@@ -398,8 +389,7 @@ public class BluetoothFragment extends Fragment {
         IntentFilter bTIntent = new IntentFilter(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
         getActivity().registerReceiver(mBroadcastReceiver2, bTIntent);
         b2Registered = true;
-        bluetoothConnectionService = new BluetoothConnectionService(getActivity());
-        MainActivity.globalBluetoothService = bluetoothConnectionService;
+        MainActivity.globalBluetoothService = new BluetoothConnectionService(getActivity());
 
     }
 

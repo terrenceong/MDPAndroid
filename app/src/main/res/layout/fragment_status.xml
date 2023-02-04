@@ -2,11 +2,13 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/statusFragmentLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <TableLayout
         android:id="@+id/mapTable"
+        android:layout_marginTop="5dp"
         android:layout_width="match_parent"
         android:layout_height="500dp"
         android:elevation="2dp"
@@ -19,12 +21,25 @@
 
     <ImageView
         android:id="@+id/imgRobot"
-        android:layout_width="44dp"
-        android:layout_height="43dp"
+        android:layout_width="50dp"
+        android:layout_height="46dp"
+        android:layout_marginRight="1.5dp"
         android:elevation="3dp"
         android:visibility="invisible"
         app:srcCompat="@drawable/car"
         tools:ignore="MissingConstraints" />
+
+    <ImageView
+        android:id="@+id/detectedIV"
+        android:layout_width="145dp"
+        android:layout_height="145dp"
+        android:background="@drawable/border_detected"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.8"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.653" />
 
     <ImageButton
         android:id="@+id/forwardButton"
@@ -122,9 +137,10 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/linearLayout"
         android:layout_width="200dp"
         android:layout_height="150dp"
-        android:layout_marginTop="500dp"
+        android:layout_marginTop="511dp"
         android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.061"
@@ -133,28 +149,31 @@
 
         <TextView
             android:id="@+id/txtRoboStatus"
+            android:padding="7dp"
             android:layout_width="match_parent"
             android:layout_height="40dp"
             android:layout_marginTop="5dp"
             android:layout_marginBottom="5dp"
-            android:background="@drawable/border"
-            android:text="robo_status" />
+            android:background="@drawable/less_radius_rectangle"
+            android:text="Status" />
 
         <TextView
             android:id="@+id/txtRoboDirection"
             android:layout_width="match_parent"
             android:layout_height="40dp"
+            android:padding="7dp"
             android:layout_marginBottom="5dp"
-            android:background="@drawable/border"
-            android:text="robo_direction" />
+            android:background="@drawable/less_radius_rectangle"
+            android:text="Direction" />
 
         <TextView
             android:id="@+id/txtRoboPosition"
             android:layout_width="match_parent"
             android:layout_height="40dp"
+            android:padding="7dp"
             android:layout_marginBottom="5dp"
-            android:background="@drawable/border"
-            android:text="robo_position" />
+            android:background="@drawable/less_radius_rectangle"
+            android:text="(x,y)" />
 
     </LinearLayout>
 

@@ -4,14 +4,23 @@ import static android.view.DragEvent.ACTION_DRAG_ENTERED;
 import static android.view.DragEvent.ACTION_DRAG_EXITED;
 import static android.view.DragEvent.ACTION_DROP;
 import static com.example.ay22_23s2mdpgrp9.Constants.A_ROBOT_POS;
-import static com.example.ay22_23s2mdpgrp9.Constants.EAST;
-import static com.example.ay22_23s2mdpgrp9.Constants.NORTH;
-import static com.example.ay22_23s2mdpgrp9.Constants.SOUTH;
-import static com.example.ay22_23s2mdpgrp9.Constants.WEST;
-//import static com.example.ay22_23s2mdpgrp9.bluetooth.BluetoothService.STATE_CONNECTED;
+import static com.example.ay22_23s2mdpgrp9.constant.Constant.EAST;
+import static com.example.ay22_23s2mdpgrp9.constant.Constant.HANDSHAKE;
+import static com.example.ay22_23s2mdpgrp9.constant.Constant.NORTH;
+import static com.example.ay22_23s2mdpgrp9.constant.Constant.READY;
+import static com.example.ay22_23s2mdpgrp9.constant.Constant.ROBOT;
+import static com.example.ay22_23s2mdpgrp9.constant.Constant.SOUTH;
+import static com.example.ay22_23s2mdpgrp9.constant.Constant.TARGET;
+import static com.example.ay22_23s2mdpgrp9.constant.Constant.WEST;
+import static com.example.ay22_23s2mdpgrp9.constant.Constant.statusMapping;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 
 import android.annotation.SuppressLint;
@@ -35,56 +44,71 @@ import android.widget.RadioGroup;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.content.res.AppCompatResources;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.example.ay22_23s2mdpgrp9.Arena.ArenaButton;
 import com.example.ay22_23s2mdpgrp9.Arena.MyDragShadowBuilder;
+import com.example.ay22_23s2mdpgrp9.Arena.ObstacleImages;
 import com.example.ay22_23s2mdpgrp9.Arena.ObstacleInfo;
 
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Set;
 
 
+import com.example.ay22_23s2mdpgrp9.MainActivity;
 import com.example.ay22_23s2mdpgrp9.R;
 import com.example.ay22_23s2mdpgrp9.bluetooth.Packet;
+import com.example.ay22_23s2mdpgrp9.constant.Constant;
 
 public class StatusFragment extends Fragment {
 
+    //drawn is the variable that keep tracks how many grid the table layout have drawn
+    //btnH,bthW is the grid height and grid width
     int x, y, btnH, btnW, drawn = 0;
+    // grid drawable background
+    Drawable btnBG = null;
     int robotRotation = 0;
+
+    private String TAG ="StatusFragment";
 
     TextView txtRoboStatus, txtRoboDirection, txtRoboPosition;
 
     //ObstacleList
-    ArrayList <JSONObject> ObstacleList = new ArrayList<JSONObject>();
+    ArrayList <JSONObject> ObstacleList = new ArrayList<>();
     // robot defaults to facing north
     int robotDirection = NORTH;
-
-    //Status, Direction and position updates for leftcol fragment
     protected int robotX, robotY;
     //public LeftColFragment fragmentLeftCol;
 
-    // keeps buttonIDs by xy coordinates
+    // stores buttonIDs by xy coordinates
     int[][] coord = new int[20][20];
 
     // obstacleID: obstacleInfo obj
     HashMap<Integer, ObstacleInfo> obstacles = new HashMap<>();
     ArrayList<String> dirs = new ArrayList<>(Arrays.asList("Top", "Right", "Bottom", "Left"));
-    Drawable btnBG = null;
 
     TableLayout mapTable;
     ImageView imgRobot;
     RadioGroup spawnGroup;
     private ImageView determinedImageIV;
-    private ImageButton resetbtn;
 
+    private ImageButton forwardBtn;
+
+    private ImageButton reverseBtn;
+
+    private ImageButton rightTurnBtn;
+
+    private ImageButton leftTurnBtn;
     Button resetButton;
 
     public StatusFragment() {
@@ -99,8 +123,39 @@ public class StatusFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
        View view = inflater.inflate(R.layout.fragment_status, container, false);
-        //determinedImageIV = (ImageView) view.findViewById(R.id.determinedPhotoIv);
-        //determinedImageIV.setImageResource(Constant.imageMapping.get(40));
+        ConstraintLayout statusFragmentLayout = view.findViewById(R.id.statusFragmentLayout);
+        statusFragmentLayout.setOnDragListener(new OutOfBoundsDragListener());
+        LocalBroadcastManager.getInstance(getContext()).registerReceiver(broadcastReceiverIncomingMsg, new IntentFilter("IncomingMsg"));
+        determinedImageIV = (ImageView) view.findViewById(R.id.detectedIV);
+        spawnGroup = view.findViewById(R.id.spawnGroup);
+        mapTable = view.findViewById(R.id.mapTable);
+        imgRobot = view.findViewById(R.id.imgRobot);
+
+        txtRoboStatus = view.findViewById(R.id.txtRoboStatus);
+        txtRoboDirection = view.findViewById(R.id.txtRoboDirection);
+        txtRoboPosition = view.findViewById(R.id.txtRoboPosition);
+        forwardBtn = view.findViewById(R.id.forwardButton);
+        reverseBtn = view.findViewById(R.id.reverseButton);
+        leftTurnBtn = view.findViewById(R.id.turnLeftButton);
+        rightTurnBtn =  view.findViewById(R.id.turnRightButton);
+        MainActivity.statusFragmentContext = getContext();
+        if(MainActivity.hasBtConnectedDevice && MainActivity.globalBluetoothService!=null){
+            this.txtRoboStatus.setText("Connected");
+            byte[] bytes = READY.getBytes(Charset.defaultCharset());
+            MainActivity.globalBluetoothService.write(bytes);
+        }else{
+            this.txtRoboStatus.setText("Not Connected");
+        }
+        // draws a 20x20 map for robot traversal when first rendered
+        mapTable.getViewTreeObserver().addOnPreDrawListener(() -> {
+            Log.d("DRAW", "Map Drawn");
+            if (drawn < 1) {
+                initMap(mapTable);
+
+                drawn++;
+            }
+            return true;
+        });
 
         //(FIX) Not sure what the above 2 lines are for
 
@@ -114,29 +169,31 @@ public class StatusFragment extends Fragment {
                 reset();
             }
         });
+        implementMovementListeners();
        return view;
     }
 
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        spawnGroup = view.findViewById(R.id.spawnGroup);
-        mapTable = view.findViewById(R.id.mapTable);
-        imgRobot = view.findViewById(R.id.imgRobot);
+    private final BroadcastReceiver broadcastReceiverIncomingMsg = new BroadcastReceiver() {
+        @SuppressLint("MissingPermission")
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(TAG, "Receiver Incoming message");
+            String msg = intent.getStringExtra("receivingMsg");
+            String [] msgParts = msg.split(",");
+            switch(msgParts[0]){
+                case HANDSHAKE: setRoboStatus(statusMapping.get("ready")); break;
+                case TARGET:
+                        if(obstacles.containsKey(Integer.parseInt(msgParts[1]))){
+                            updateDetectedImage(obstacles.get(Integer.parseInt(msgParts[1]))
+                                    ,Integer.parseInt(msgParts[2]));
+                        }
+                        break;
+                case ROBOT: setRobotXY(Integer.parseInt(msgParts[1]),Integer.parseInt(msgParts[2])
+                        ,msgParts[3]);break;
 
-        txtRoboStatus = view.findViewById(R.id.txtRoboStatus);
-        txtRoboDirection = view.findViewById(R.id.txtRoboDirection);
-        txtRoboPosition = view.findViewById(R.id.txtRoboPosition);
-
-        // draws a 20x20 map for robot traversal when first rendered
-        mapTable.getViewTreeObserver().addOnPreDrawListener(() -> {
-            Log.d("DRAW", "Map Drawn");
-            if (drawn < 1) {
-                initMap(mapTable);
-
-                drawn++;
             }
-            return true;
-        });
-    }
+        }
+    };
 
     private void initMap(TableLayout mapTable) {
         // set cell height and width
@@ -157,6 +214,7 @@ public class StatusFragment extends Fragment {
                 btn.setPadding(1, 1, 1, 1);
                 btn.setBackground(btnBG);
                 btn.setLayoutParams(new TableRow.LayoutParams(btnW, btnH));
+                //set it to white
                 btn.setTextColor(Color.rgb(255, 255, 255));
 
                 coord[x][y] = btn.getId();
@@ -167,6 +225,50 @@ public class StatusFragment extends Fragment {
             }
             mapTable.addView(row);
         }
+    }
+    private void implementMovementListeners(){
+            forwardBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(!MainActivity.hasBtConnectedDevice){
+                        Toast.makeText(getContext(), "Connection not establish", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    Toast.makeText(getContext(), "Forward", Toast.LENGTH_SHORT).show();
+                }
+            });
+            reverseBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(!MainActivity.hasBtConnectedDevice){
+                        Toast.makeText(getContext(), "Connection not establish", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    Toast.makeText(getContext(), "Reverse", Toast.LENGTH_SHORT).show();
+                }
+            });
+            leftTurnBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(!MainActivity.hasBtConnectedDevice){
+                        Toast.makeText(getContext(), "Connection not establish", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    Toast.makeText(getContext(), "Turning left", Toast.LENGTH_SHORT).show();
+                }
+            });
+            rightTurnBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(!MainActivity.hasBtConnectedDevice){
+                        Toast.makeText(getContext(), "Connection not establish", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    Toast.makeText(getContext(), "Turning right", Toast.LENGTH_SHORT).show();
+                }
+            });
+
+
     }
 
     public void emptyCellObsID(int obstacleID) {
@@ -186,16 +288,22 @@ public class StatusFragment extends Fragment {
 
     // returns specified cell to regular state
     public void emptyCell(ArenaButton btn) {
+        //need to find out where this btn.obstacleId is initialize
         int obstacleID = btn.obstacleID;
-
-        // updates robot on obstacle removal
+        //get obstacle based on id from the map
         ObstacleInfo obstacleInfo = obstacles.get(obstacleID);
+        //remove obstacle from obstacle List
         sendRemoveObstacle(obstacleInfo);
-
+        //remove obstacle from map
         obstacles.remove(obstacleID);
+        //set text to empty
         btn.setText("");
+        //-1 means not storing any obstacle in this arena button
         btn.obstacleID = -1;
         btn.setBackground(btnBG);
+        //"Remove,id,x,y"
+        removeObstacleToRPI(obstacleID);
+
     }
 
     private class MapBtnClickListener implements View.OnClickListener {
@@ -209,16 +317,16 @@ public class StatusFragment extends Fragment {
 
         @Override
         public void onClick(View view) {
-            // stops listener if not connected via bluetooth yet
-//            if (bluetoothService.state != STATE_CONNECTED) {
-//                Toast.makeText(view.getContext(), btAlert, Toast.LENGTH_SHORT).show();
-//                return;
-//            }
-
+//             stops listener if not connected via bluetooth yet
+            if (!MainActivity.hasBtConnectedDevice || MainActivity.globalBluetoothService==null) {
+                Toast.makeText(getContext(),"Connection not established",Toast.LENGTH_LONG).show();
+                return;
+            }
             ArenaButton btn = view.findViewById(this.id);
-            // removes item if it's on cell
+            // do nothing on a btn that already contained the obstacle
             if (!btn.getText().equals("")) {
-                emptyCell(btn);
+                //remove obstacle
+//                emptyCell(btn);
                 return;
             }
 
@@ -245,7 +353,7 @@ public class StatusFragment extends Fragment {
             }
         }
     }
-
+    // drag listener within the map
     private class BtnDragListener implements View.OnDragListener {
         int x, y, id;
 
@@ -276,14 +384,33 @@ public class StatusFragment extends Fragment {
 
                         // removes original cell
                         emptyCell(originalBtn);
+                        Thread.sleep(500);
 
                         // moves obstacle over to new cell
                         int obstacleID = json.getInt("obstacleID");
                         int dirSelected = json.getInt("dirSelected");
                         addObstacle(obstacleID, newCell.getId(), dirSelected);
-                    } catch (JSONException ex) {
+                    } catch (JSONException | InterruptedException ex) {
                         ex.printStackTrace();
                     }
+                    return true;
+            }
+            return true;
+        }
+    }
+    // for drag events to anything outside the map
+    // remove the dragged item
+    private class OutOfBoundsDragListener implements View.OnDragListener {
+        @Override
+        public boolean onDrag(View view, DragEvent e) {
+            switch (e.getAction()) {
+                case ACTION_DRAG_ENTERED:
+                case ACTION_DRAG_EXITED:
+                    return true;
+
+                case ACTION_DROP:
+                    ArenaButton originalBtn = (ArenaButton) e.getLocalState();
+                    emptyCell(originalBtn);
                     return true;
             }
             return true;
@@ -322,17 +449,21 @@ public class StatusFragment extends Fragment {
 
         // direction default to north
         int borderID = R.drawable.top_border;
+        char dirChar = 'N';
 
         // get drawable ID for image direction
         switch (dirSelected) {
             case EAST:
                 borderID = R.drawable.right_border;
+                dirChar = 'E';
                 break;
             case SOUTH:
                 borderID = R.drawable.bottom_border;
+                dirChar = 'S';
                 break;
             case WEST:
                 borderID = R.drawable.left_border;
+                dirChar = 'W';
                 break;
         }
 
@@ -341,11 +472,12 @@ public class StatusFragment extends Fragment {
         btn.setText(String.valueOf(obstacleID));
         btn.obstacleID = obstacleID;
 
-        // keeps track of obstacle in memory
+        // keep track of which obstacle is already created
+        // a map that stores id -> obstacle info
         ObstacleInfo obstacleInfo = new ObstacleInfo(obstacleID, btnID, btn.x, btn.y, dirSelected);
-       obstacles.put(obstacleID, obstacleInfo);
+        obstacles.put(obstacleID, obstacleInfo);
 
-        // sends addition of obstacle over to robot
+        // add obstacle info as json list
         sendAddObstacleData(obstacleInfo);
 
         // draws direction of image onto cell
@@ -374,7 +506,6 @@ public class StatusFragment extends Fragment {
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
                     view.startDragAndDrop(dragData, shadow, btn, 0);
-                    // deprecated method, for my old ass tablet
                 else
                     view.startDrag(dragData, shadow, btn, 0);
 
@@ -384,16 +515,8 @@ public class StatusFragment extends Fragment {
 
             return true;
         });
+        addObstacleToRPI(obstacleID,btn.x,btn.y,dirChar);
     }
-
-//    private void sendAddObstacleData(ObstacleInfo obstacleInfo) {
-//        if (bluetoothService.state == STATE_CONNECTED) {
-//            bluetoothService.write(obstacleInfo.toAddBytes());
-//            ObstacleList.add(obstacleInfo.obToString());
-//        }
-//        else
-//            Toast.makeText(this.getContext(), btAlert, Toast.LENGTH_LONG).show();
-//    }
 
     private void sendAddObstacleData(ObstacleInfo obstacleInfo) {
             ObstacleList.add(obstacleInfo.obToString());
@@ -465,9 +588,6 @@ public class StatusFragment extends Fragment {
         // (FIX) Create textview in layout xml
         // create method setRobotPosition and setRoboDirection in this java file to display position
 
-//        fragmentLeftCol.setRobotPosition(getPositionString());
-//        fragmentLeftCol.setRoboDirection(getDirectionString());
-
         // gets button x and y coordinates
         int[] pt = new int[2];
         btn.getLocationInWindow(pt);
@@ -477,17 +597,18 @@ public class StatusFragment extends Fragment {
         // set robot drawing position to bottom left instead of top left
         imgRobot.setX(btn.getX());
         // 24 for status bar and 50 for placing it 2 buttons up
-        imgRobot.setY(pt[1] - dpToPixels(25) - dpToPixels(26));
+        imgRobot.setY(pt[1] - dpToPixels(24) - dpToPixels(25));
 
-        //String pos = "(" + String.valueOf(robotX) + "," + String.valueOf(robotY) + ")";
+        //set robot position in textview (x,y)
         setRobotPosition(getPositionString());
+        //set robot direction in textview N,S,E,W
         setRoboDirection(getDirectionString());
 
         imgRobot.setRotation(((robotDirection) * 90) % 360);
         // rotates 90 degrees clockwise on click
         imgRobot.setOnClickListener(robot -> {
             rotateRobot(robot, 90);
-            sendSpawnRobot();
+//            sendSpawnRobot();
 
             // (FIX) Uncomment when sendSpawnRobot() method is completed
         });
@@ -496,6 +617,7 @@ public class StatusFragment extends Fragment {
 
     // Clears all cells back to default state
     public void reset() {
+        this.determinedImageIV.setImageDrawable(null);
         Set<Integer> keys = obstacles.keySet();
 
         for (int key : keys) {
@@ -525,7 +647,7 @@ public class StatusFragment extends Fragment {
 
 
     private int dpToPixels(int dp) {
-        return (int) (dp * getResources().getDisplayMetrics().density);
+        return (int) (dp * MainActivity.statusFragmentContext.getResources().getDisplayMetrics().density);
     }
 
 
@@ -533,6 +655,7 @@ public class StatusFragment extends Fragment {
         return obstacles;
     }
 
+    // to rotate the robot
     public void rotateRobot(View v, int rotation) {
         if (v == null)
             v = imgRobot;
@@ -552,6 +675,7 @@ public class StatusFragment extends Fragment {
 
         robotRotation = (robotRotation + rotation) % 360;
         v.setRotation(robotRotation);
+        //set textview
         setRoboDirection(getDirectionString());
 
         //fragmentLeftCol.setRoboDirection(getDirectionString());
@@ -561,7 +685,7 @@ public class StatusFragment extends Fragment {
         Log.d("Check Direction", String.valueOf(robotDirection));
     }
 
-
+// need to check called from main act
     public void moveRobot(boolean forward) {
         int multiplier = forward ? 1 : -1;
         switch (robotDirection) {
@@ -585,17 +709,34 @@ public class StatusFragment extends Fragment {
         }
     }
 
-
-    public void setRobotXY(int x, int y) {
-        robotX = x;
-        robotY = y;
+    // need to check called from main act
+    public void setRobotXY(int x, int y,String dir) {
+        x = x < 0 ? 0 : x;
+        x = x > 19 ? 19 : x;
+        y = y < 0 ? 0 : y;
+        y = y > 19 ? 19:y;
         int btnID = coord[x][y];
+        switch(dir.toLowerCase()){
+            case "n":robotDirection = NORTH; robotRotation = 0;break;
+            case "e":robotDirection = EAST;robotRotation = 90;break;
+            case "s":robotDirection = SOUTH;robotRotation=180;break;
+            case "w":robotDirection = WEST;robotRotation=270;
+        }
 
-        View v = getView();
-        assert v != null;
-
-        ArenaButton btn = v.findViewById(btnID);
+        ArenaButton btn = mapTable.findViewById(btnID);
         spawnRobot(btn);
+    }
+    private void updateDetectedImage(ObstacleInfo obstacleInfo,int targetID){
+        if(targetID < 11 || targetID > 40){
+            return;
+        }
+        Log.d(TAG,"Updating obstacle id:" +  obstacleInfo.obstacleID + " to target id:" + targetID + " at coordinate "
+        + "(" + obstacleInfo.x+ ","+obstacleInfo.y+")");
+        ArenaButton btn = mapTable.findViewById(coord[obstacleInfo.x][obstacleInfo.y]);
+        btn.setBackground(AppCompatResources.getDrawable(
+                MainActivity.statusFragmentContext, R.drawable.border_detected));
+        btn.setText(String.valueOf(targetID));
+        this.determinedImageIV.setImageResource(Constant.imageMapping.get(targetID));
     }
 
     public void setRoboStatus(String status) {
@@ -609,6 +750,18 @@ public class StatusFragment extends Fragment {
     public void setRobotPosition(String position) {
         txtRoboPosition.setText(position);
     }
+
+    private void addObstacleToRPI(int obstacleId,int x,int y,char dir){
+        String text = "ADD," + obstacleId + "," + x + "," + y + "," + dir;
+        byte[] bytes = text.getBytes(Charset.defaultCharset());
+        MainActivity.globalBluetoothService.write(bytes);
+    }
+    private void removeObstacleToRPI(int obstacleId){
+        String text = "REMOVE," + obstacleId;
+        byte[] bytes = text.getBytes(Charset.defaultCharset());
+        MainActivity.globalBluetoothService.write(bytes);
+    }
+
 
 
     public String getDirectionString() {

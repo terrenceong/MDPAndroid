@@ -22,10 +22,10 @@ public class ObstacleInfo {
     public JSONObject obToString(){
         try {
             JSONObject json = new JSONObject();
-            json.put("obstacle_id", obstacleID);
-            json.put("x", x);
-            json.put("y", y);
-            json.put("direction", dir);
+            json.put("obstacle_id", this.obstacleID);
+            json.put("x", this.x);
+            json.put("y", this.y);
+            json.put("direction", this.dir);
             return json;
         }
         catch (JSONException e)
