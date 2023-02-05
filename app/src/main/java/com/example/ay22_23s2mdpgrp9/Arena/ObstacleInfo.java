@@ -19,20 +19,20 @@ public class ObstacleInfo {
         this.dir = dirSelected;
     }
 
-    public JSONObject obToString(){
-        try {
-            JSONObject json = new JSONObject();
-            json.put("obstacle_id", this.obstacleID);
-            json.put("x", this.x);
-            json.put("y", this.y);
-            json.put("direction", this.dir);
-            return json;
-        }
-        catch (JSONException e)
-        {
-            e.printStackTrace();
-        }
-        return null;
-    }
+//    public JSONObject obToString(){
+//        try {
+//            JSONObject json = new JSONObject();
+//            json.put("obstacle_id", this.obstacleID);
+//            json.put("x", this.x);
+//            json.put("y", this.y);
+//            json.put("direction", this.dir);
+//            return json;
+//        }
+//        catch (JSONException e)
+//        {
+//            e.printStackTrace();
+//        }
+//        return null;
+//    }
 
 }

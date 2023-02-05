@@ -1,20 +1,6 @@
 package com.example.ay22_23s2mdpgrp9;
 
-import static android.view.DragEvent.ACTION_DRAG_ENTERED;
-import static android.view.DragEvent.ACTION_DRAG_EXITED;
-import static android.view.DragEvent.ACTION_DROP;
-import static com.example.ay22_23s2mdpgrp9.Constants.ADD_OBSTACLE;
-import static com.example.ay22_23s2mdpgrp9.Constants.LOG;
-import static com.example.ay22_23s2mdpgrp9.Constants.MOVE_BACKWARD;
-import static com.example.ay22_23s2mdpgrp9.Constants.MOVE_FORWARD;
-import static com.example.ay22_23s2mdpgrp9.Constants.REMOVE_OBSTACLE;
-import static com.example.ay22_23s2mdpgrp9.Constants.TURN_LEFT;
-import static com.example.ay22_23s2mdpgrp9.Constants.TURN_RIGHT;
-import static com.example.ay22_23s2mdpgrp9.Constants.UPDATE;
-
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.content.res.AppCompatResources;
-import androidx.fragment.app.FragmentManager;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -22,26 +8,12 @@ import androidx.navigation.ui.NavigationUI;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.view.DragEvent;
-import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
 
-import com.example.ay22_23s2mdpgrp9.Arena.ArenaButton;
-import com.example.ay22_23s2mdpgrp9.Arena.ObstacleImages;
-import com.example.ay22_23s2mdpgrp9.Arena.ObstacleInfo;
 import com.example.ay22_23s2mdpgrp9.bluetooth.BluetoothConnectionService;
 import com.example.ay22_23s2mdpgrp9.status.StatusFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.nio.charset.StandardCharsets;
-import java.util.concurrent.CountedCompleter;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -148,29 +120,5 @@ public class MainActivity extends AppCompatActivity {
 //            //(FIX) Not sure if needed
 //        }
 //    }
-    private void drawObstacleImg(int x, int y, int imageID) {
-        // gets image to be drawn
-        Drawable imgDrawable = getImgDrawable(imageID);
-
-        int obstacleID = fragmentMap.getObstacleIDByCoord(x, y);
-
-        if (obstacleID == -1)
-            return;
-
-        // gets corresponding obstacle
-        ObstacleInfo obsInfo = fragmentMap.getObstacles().get(obstacleID);
-
-        // draws recognised image onto obstacle block
-        ArenaButton btn = findViewById(obsInfo.btnID);
-        imgDrawable.setBounds(2,2,btn.getWidth() - 2,btn.getHeight() - 2);
-        btn.getOverlay().add(imgDrawable);
-        btn.setText("");
-        btn.setTextColor(Color.parseColor("#FFFFFFFF"));
-    }
-
-    private Drawable getImgDrawable(int imageID) {
-        int drawableID = ObstacleImages.getDrawableID(imageID);
-        return AppCompatResources.getDrawable(this, drawableID);
-    }
 
 }

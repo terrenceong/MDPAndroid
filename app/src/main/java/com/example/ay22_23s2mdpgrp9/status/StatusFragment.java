@@ -3,7 +3,6 @@ package com.example.ay22_23s2mdpgrp9.status;
 import static android.view.DragEvent.ACTION_DRAG_ENTERED;
 import static android.view.DragEvent.ACTION_DRAG_EXITED;
 import static android.view.DragEvent.ACTION_DROP;
-import static com.example.ay22_23s2mdpgrp9.Constants.A_ROBOT_POS;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.EAST;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.HANDSHAKE;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.NORTH;
@@ -55,7 +54,6 @@ import org.json.JSONObject;
 
 import com.example.ay22_23s2mdpgrp9.Arena.ArenaButton;
 import com.example.ay22_23s2mdpgrp9.Arena.MyDragShadowBuilder;
-import com.example.ay22_23s2mdpgrp9.Arena.ObstacleImages;
 import com.example.ay22_23s2mdpgrp9.Arena.ObstacleInfo;
 
 import java.nio.charset.Charset;
@@ -67,7 +65,6 @@ import java.util.Set;
 
 import com.example.ay22_23s2mdpgrp9.MainActivity;
 import com.example.ay22_23s2mdpgrp9.R;
-import com.example.ay22_23s2mdpgrp9.bluetooth.Packet;
 import com.example.ay22_23s2mdpgrp9.constant.Constant;
 
 public class StatusFragment extends Fragment {
@@ -84,10 +81,10 @@ public class StatusFragment extends Fragment {
     TextView txtRoboStatus, txtRoboDirection, txtRoboPosition;
 
     //ObstacleList
-    ArrayList <JSONObject> ObstacleList = new ArrayList<>();
     // robot defaults to facing north
     int robotDirection = NORTH;
-    protected int robotX, robotY;
+    protected int robotX=-1;
+    protected int robotY =-1;
     //public LeftColFragment fragmentLeftCol;
 
     // stores buttonIDs by xy coordinates
@@ -109,6 +106,10 @@ public class StatusFragment extends Fragment {
     private ImageButton rightTurnBtn;
 
     private ImageButton leftTurnBtn;
+
+    private Button imageRecBtn;
+
+    private Button fastestCarBtn;
     Button resetButton;
 
     public StatusFragment() {
@@ -116,6 +117,13 @@ public class StatusFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        reset();
+
     }
 
     @Override
@@ -138,9 +146,12 @@ public class StatusFragment extends Fragment {
         reverseBtn = view.findViewById(R.id.reverseButton);
         leftTurnBtn = view.findViewById(R.id.turnLeftButton);
         rightTurnBtn =  view.findViewById(R.id.turnRightButton);
+        imageRecBtn = view.findViewById(R.id.btnImageRec);
+        fastestCarBtn = view.findViewById(R.id.btnFastestCar);
         MainActivity.statusFragmentContext = getContext();
         if(MainActivity.hasBtConnectedDevice && MainActivity.globalBluetoothService!=null){
             this.txtRoboStatus.setText("Connected");
+            MainActivity.serialChat = new StringBuilder(MainActivity.serialChat.append("This Device:"+READY+'\n'));
             byte[] bytes = READY.getBytes(Charset.defaultCharset());
             MainActivity.globalBluetoothService.write(bytes);
         }else{
@@ -167,6 +178,26 @@ public class StatusFragment extends Fragment {
             public void onClick(View view)
             {
                 reset();
+            }
+        });
+        imageRecBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(!MainActivity.hasBtConnectedDevice || MainActivity.globalBluetoothService ==null){
+                    Toast.makeText(getContext(), "Connection not establish", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                sendMessageToRPI("START_IMAGE_TASK");
+            }
+        });
+        fastestCarBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(!MainActivity.hasBtConnectedDevice || MainActivity.globalBluetoothService ==null){
+                    Toast.makeText(getContext(), "Connection not establish", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                sendMessageToRPI("START_FASTEST_TASK");
             }
         });
         implementMovementListeners();
@@ -230,41 +261,47 @@ public class StatusFragment extends Fragment {
             forwardBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if(!MainActivity.hasBtConnectedDevice){
+                    if(!MainActivity.hasBtConnectedDevice || MainActivity.globalBluetoothService ==null){
                         Toast.makeText(getContext(), "Connection not establish", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    Toast.makeText(getContext(), "Forward", Toast.LENGTH_SHORT).show();
+                    moveRobot(true);
+//                    Toast.makeText(getContext(), "Forward", Toast.LENGTH_SHORT).show();
                 }
             });
             reverseBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if(!MainActivity.hasBtConnectedDevice){
+                    if(!MainActivity.hasBtConnectedDevice || MainActivity.globalBluetoothService ==null){
                         Toast.makeText(getContext(), "Connection not establish", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    Toast.makeText(getContext(), "Reverse", Toast.LENGTH_SHORT).show();
+                    moveRobot(false);
+//                    Toast.makeText(getContext(), "Reverse", Toast.LENGTH_SHORT).show();
                 }
             });
             leftTurnBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if(!MainActivity.hasBtConnectedDevice){
+                    if(!MainActivity.hasBtConnectedDevice || MainActivity.globalBluetoothService ==null){
                         Toast.makeText(getContext(), "Connection not establish", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    Toast.makeText(getContext(), "Turning left", Toast.LENGTH_SHORT).show();
+                    rotateRobot(imgRobot,-90);
+                    sendMessageToRPI("LEFT_TURN");
+//                    Toast.makeText(getContext(), "Turning left", Toast.LENGTH_SHORT).show();
                 }
             });
             rightTurnBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if(!MainActivity.hasBtConnectedDevice){
+                    if(!MainActivity.hasBtConnectedDevice || MainActivity.globalBluetoothService ==null){
                         Toast.makeText(getContext(), "Connection not establish", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    Toast.makeText(getContext(), "Turning right", Toast.LENGTH_SHORT).show();
+                    rotateRobot(imgRobot,90);
+                    sendMessageToRPI("RIGHT_TURN");
+//                    Toast.makeText(getContext(), "Turning right", Toast.LENGTH_SHORT).show();
                 }
             });
 
@@ -279,7 +316,6 @@ public class StatusFragment extends Fragment {
         assert v != null;
 
         ArenaButton btn = v.findViewById(obstacleInfo.btnID);
-        sendRemoveObstacle(obstacleInfo);
         obstacles.remove(obstacleID);
         btn.setText("");
         btn.obstacleID = -1;
@@ -290,10 +326,6 @@ public class StatusFragment extends Fragment {
     public void emptyCell(ArenaButton btn) {
         //need to find out where this btn.obstacleId is initialize
         int obstacleID = btn.obstacleID;
-        //get obstacle based on id from the map
-        ObstacleInfo obstacleInfo = obstacles.get(obstacleID);
-        //remove obstacle from obstacle List
-        sendRemoveObstacle(obstacleInfo);
         //remove obstacle from map
         obstacles.remove(obstacleID);
         //set text to empty
@@ -336,7 +368,7 @@ public class StatusFragment extends Fragment {
             // adds robot onto map
             if (spawn.equals("Robot")) {
                 spawnRobot(btn);
-                //sendSpawnRobot();
+                sendSpawnRobot();
             }
             // (FIX) sendSpawnRobot() sends position of robot via bluetooth,
             // can uncomment once method is completed below
@@ -477,9 +509,6 @@ public class StatusFragment extends Fragment {
         ObstacleInfo obstacleInfo = new ObstacleInfo(obstacleID, btnID, btn.x, btn.y, dirSelected);
         obstacles.put(obstacleID, obstacleInfo);
 
-        // add obstacle info as json list
-        sendAddObstacleData(obstacleInfo);
-
         // draws direction of image onto cell
         Drawable border = AppCompatResources.getDrawable(this.requireContext(), borderID);
         btn.setBackground(border);
@@ -518,57 +547,17 @@ public class StatusFragment extends Fragment {
         addObstacleToRPI(obstacleID,btn.x,btn.y,dirChar);
     }
 
-    private void sendAddObstacleData(ObstacleInfo obstacleInfo) {
-            ObstacleList.add(obstacleInfo.obToString());
-    }
-    // (FIX) not sure how to check for bluetooth connection, but once that is sorted out can try to
-    // change the code to something similar above
-
-
-//    private void sendRemoveObstacle(ObstacleInfo obstacleInfo) {
-//        if (bluetoothService.state == STATE_CONNECTED) {
-//            bluetoothService.write(obstacleInfo.toRemoveBytes());
-//            ObstacleList = removeJson(ObstacleList,obstacleInfo.obToString());
-//
-//        }
-//        else
-//            Toast.makeText(this.getContext(), btAlert, Toast.LENGTH_LONG).show();
-//    }
-
-    private void sendRemoveObstacle(ObstacleInfo obstacleInfo) {
-            ObstacleList = removeJson(ObstacleList,obstacleInfo.obToString());
-    }
-    // (FIX) same issue as the method above
-
-    private ArrayList<JSONObject> removeJson(ArrayList<JSONObject> list,JSONObject obj)
-    {
-        for(int i = 0;i <list.size();i++)
-        {
-            try {
-                if(list.get(i).getInt("obstacle_id") == obj.getInt("obstacle_id"))
-                {
-                    list.remove(i);
-                    break;
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-        return list;
-    }
-
-    // (FIX) Sends robot position via bluetooth, check for bluetooth connection
    private void sendSpawnRobot() {
-//        if (bluetoothService.state == STATE_CONNECTED) {
-           Packet packet = new Packet(A_ROBOT_POS);
-           packet.setX(robotX);
-           packet.setY(robotY);
-           packet.setDirection(robotDirection);
-
-//            bluetoothService.write(packet.getJSONBytes());
-//        } else {
-//            Toast.makeText(this.getContext(), btAlert, Toast.LENGTH_LONG).show();
-//        }
+        String text = "ROBOT," + robotX + "," + robotY + ",";
+        switch(robotDirection){
+            case NORTH: text +='N';break;
+            case SOUTH: text+='S';break;
+            case EAST: text+='E';break;
+            case WEST: text+='W';break;
+        }
+        byte[] bytes = text.getBytes(Charset.defaultCharset());
+       MainActivity.serialChat = new StringBuilder(MainActivity.serialChat.append("This Device:" + text + '\n'));
+        MainActivity.globalBluetoothService.write(bytes);
     }
 
 
@@ -608,7 +597,7 @@ public class StatusFragment extends Fragment {
         // rotates 90 degrees clockwise on click
         imgRobot.setOnClickListener(robot -> {
             rotateRobot(robot, 90);
-//            sendSpawnRobot();
+            sendSpawnRobot();
 
             // (FIX) Uncomment when sendSpawnRobot() method is completed
         });
@@ -617,6 +606,8 @@ public class StatusFragment extends Fragment {
 
     // Clears all cells back to default state
     public void reset() {
+        if(!MainActivity.hasBtConnectedDevice || MainActivity.globalBluetoothService==null)
+            return;
         this.determinedImageIV.setImageDrawable(null);
         Set<Integer> keys = obstacles.keySet();
 
@@ -630,17 +621,14 @@ public class StatusFragment extends Fragment {
             btn.obstacleID = -1;
             btn.setBackground(btnBG);
             btn.setOnLongClickListener(null);
-
-            // updates robot on obstacle removal
-            sendRemoveObstacle(obstacleInfo);
         }
-
         obstacles.clear();
         imgRobot.setVisibility(View.GONE);
 
-        setRoboStatus("Status");
+//        setRoboStatus("Status");
         setRoboDirection("Direction");
         setRobotPosition("(x,y)");
+        sendMessageToRPI("RESET");
 
         // (FIX) Same as above -> create methods and textview then display position
     }
@@ -678,8 +666,6 @@ public class StatusFragment extends Fragment {
         //set textview
         setRoboDirection(getDirectionString());
 
-        //fragmentLeftCol.setRoboDirection(getDirectionString());
-
         //(FIX) Same as above -> create methods and textview then display position
 
         Log.d("Check Direction", String.valueOf(robotDirection));
@@ -687,26 +673,64 @@ public class StatusFragment extends Fragment {
 
 // need to check called from main act
     public void moveRobot(boolean forward) {
-        int multiplier = forward ? 1 : -1;
+        if(robotY==-1 || robotX==-1){
+            Toast.makeText(getContext(),"Please place the robot on the map first",Toast.LENGTH_SHORT).show();
+            return;
+        }
+        int multiplier;
+        if(forward){
+           multiplier = 1;
+           sendMessageToRPI("FORWARD");
+        }
+        else{
+            multiplier = -1;
+            sendMessageToRPI("REVERSE");
+        }
         switch (robotDirection) {
             case NORTH:
-                imgRobot.setY(imgRobot.getY() - dpToPixels(25) * multiplier);
-                robotY += (forward) ? 1 : -1;
+                if(forward && robotY < 18)
+                {
+                    imgRobot.setY(imgRobot.getY() - dpToPixels(25) * multiplier);
+                    robotY += 1;
+                }
+                else if(!forward && robotY > 0){
+                    imgRobot.setY(imgRobot.getY() - dpToPixels(25) * multiplier);
+                    robotY -= 1;
+                }
                 break;
             case SOUTH:
-                imgRobot.setY(imgRobot.getY() + dpToPixels(25) * multiplier);
-                robotY += (forward) ? -1 : 1;
+                if(forward && robotY > 0){
+                    imgRobot.setY(imgRobot.getY() + dpToPixels(25) * multiplier);
+                    robotY -= 1;
+                }
+                else if(!forward && robotY < 18){
+                    imgRobot.setY(imgRobot.getY() + dpToPixels(25) * multiplier);
+                    robotY += 1;
+                }
                 break;
             case WEST:
-                imgRobot.setX(imgRobot.getX() - dpToPixels(25) * multiplier);
-                robotX += (forward) ? -1 : 1;
+                if(forward && robotX > 0){
+                    imgRobot.setX(imgRobot.getX() - dpToPixels(25) * multiplier);
+                    robotX -= 1;
+                }
+                else if(!forward && robotX < 18){
+                    imgRobot.setX(imgRobot.getX() - dpToPixels(25) * multiplier);
+                    robotX += 1;
+                }
                 break;
             case EAST:
-                imgRobot.setX(imgRobot.getX() + dpToPixels(25) * multiplier);
-                robotX += (forward) ? 1 : -1;
+                if(forward && robotX < 18){
+                    imgRobot.setX(imgRobot.getX() + dpToPixels(25) * multiplier);
+                    robotX += 1;
+                }
+                else if(!forward && robotX > 0){
+                    imgRobot.setX(imgRobot.getX() + dpToPixels(25) * multiplier);
+                    robotX -= 1;
+                }
                 break;
 
         }
+        setRobotPosition(getPositionString());
     }
 
     // need to check called from main act
@@ -753,16 +777,21 @@ public class StatusFragment extends Fragment {
 
     private void addObstacleToRPI(int obstacleId,int x,int y,char dir){
         String text = "ADD," + obstacleId + "," + x + "," + y + "," + dir;
+        MainActivity.serialChat = new StringBuilder(MainActivity.serialChat.append("This Device:" + text + '\n'));
         byte[] bytes = text.getBytes(Charset.defaultCharset());
         MainActivity.globalBluetoothService.write(bytes);
     }
     private void removeObstacleToRPI(int obstacleId){
         String text = "REMOVE," + obstacleId;
+        MainActivity.serialChat = new StringBuilder(MainActivity.serialChat.append("This Device:" + text + '\n'));
         byte[] bytes = text.getBytes(Charset.defaultCharset());
         MainActivity.globalBluetoothService.write(bytes);
     }
-
-
+    private void sendMessageToRPI(String text){
+        byte[] bytes = text.getBytes(Charset.defaultCharset());
+        MainActivity.serialChat = new StringBuilder(MainActivity.serialChat.append("This Device:" + text + '\n'));
+        MainActivity.globalBluetoothService.write(bytes);
+    }
 
     public String getDirectionString() {
         String[] dirArray = new String[]{"NORTH", "EAST", "SOUTH", "WEST"};
@@ -789,42 +818,4 @@ public class StatusFragment extends Fragment {
 
         return -1;
     }
-
-
-//    public void setBluetoothService(BluetoothService bluetoothService) {
-//        this.bluetoothService = bluetoothService;
-//    }
-
-    //(FIX) Not sure if needed
-
-
-    public void setSpawnGroup(RadioGroup spawnGroup) {
-        this.spawnGroup = spawnGroup;
-    }
-
-
-//    public void setLeftColFragment(LeftColFragment fragmentLeftCol) {
-//        this.fragmentLeftCol = fragmentLeftCol;
-//    }
-
-    // (FIX) Don't think we need this since we only have 1 fragment for the map
-
-    public void setRobotDirection(int direction) {
-        this.robotDirection = direction;
-    }
-    public ArrayList<JSONObject> getObstacleList()
-    {
-        return ObstacleList;
-    }
-
-    public RadioGroup getSpawnGroup() {
-        return spawnGroup;
-    }
-
-
-
-
-
-
-
 }
