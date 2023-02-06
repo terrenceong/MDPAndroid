@@ -1,12 +1,5 @@
 package com.example.ay22_23s2mdpgrp9.Arena;
 
-import static com.example.ay22_23s2mdpgrp9.Constants.A_ADD_OBSTACLE;
-import static com.example.ay22_23s2mdpgrp9.Constants.A_REM_OBSTACLE;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.nio.charset.StandardCharsets;
 
 public class ObstacleInfo {
     public int x, y, dir, btnID, obstacleID;

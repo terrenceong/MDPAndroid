@@ -8,9 +8,6 @@
     <item android:title="Status"
           android:icon="@drawable/ic_status"
           android:id="@+id/statusFragment" />
-    <item android:title="Map Config"
-          android:icon="@drawable/ic_map"
-          android:id="@+id/mapConfigFragment" />
     <item android:title="Controller"
           android:icon="@drawable/ic_controller"
           android:id="@+id/controllerFragment" />

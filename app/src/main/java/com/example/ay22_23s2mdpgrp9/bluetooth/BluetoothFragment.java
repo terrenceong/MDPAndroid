@@ -108,14 +108,12 @@ public class BluetoothFragment extends Fragment {
     private boolean b3registered = false;
 
 
-
-
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
     }
+
 
     //broadcast receiver for ACTION_STATE_CHANGED
     private final BroadcastReceiver mBroadcastReceiver1 = new BroadcastReceiver() {

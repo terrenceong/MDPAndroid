@@ -4,9 +4,14 @@ import static android.view.DragEvent.ACTION_DRAG_ENTERED;
 import static android.view.DragEvent.ACTION_DRAG_EXITED;
 import static android.view.DragEvent.ACTION_DROP;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.EAST;
+import static com.example.ay22_23s2mdpgrp9.constant.Constant.FORWARD;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.HANDSHAKE;
+import static com.example.ay22_23s2mdpgrp9.constant.Constant.IMAGE_SCAN;
+import static com.example.ay22_23s2mdpgrp9.constant.Constant.LEFT_TURN;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.NORTH;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.READY;
+import static com.example.ay22_23s2mdpgrp9.constant.Constant.REVERSE;
+import static com.example.ay22_23s2mdpgrp9.constant.Constant.RIGHT_TURN;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.ROBOT;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.SOUTH;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.TARGET;
@@ -19,6 +24,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 
@@ -119,6 +125,7 @@ public class StatusFragment extends Fragment {
         super.onCreate(savedInstanceState);
     }
 
+
     @Override
     public void onPause() {
         super.onPause();
@@ -187,7 +194,12 @@ public class StatusFragment extends Fragment {
                     Toast.makeText(getContext(), "Connection not establish", Toast.LENGTH_SHORT).show();
                     return;
                 }
+                if(robotX == -1 || robotY == -1 || obstacles.size() < 1){
+                    Toast.makeText(getContext(),"Arena is not ready",Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 sendMessageToRPI("START_IMAGE_TASK");
+                setRoboStatus(statusMapping.get("search"));
             }
         });
         fastestCarBtn.setOnClickListener(new View.OnClickListener() {
@@ -211,7 +223,7 @@ public class StatusFragment extends Fragment {
             Log.d(TAG, "Receiver Incoming message");
             String msg = intent.getStringExtra("receivingMsg");
             String [] msgParts = msg.split(",");
-            switch(msgParts[0]){
+            switch(msgParts[0].toUpperCase()){
                 case HANDSHAKE: setRoboStatus(statusMapping.get("ready")); break;
                 case TARGET:
                         if(obstacles.containsKey(Integer.parseInt(msgParts[1]))){
@@ -221,6 +233,11 @@ public class StatusFragment extends Fragment {
                         break;
                 case ROBOT: setRobotXY(Integer.parseInt(msgParts[1]),Integer.parseInt(msgParts[2])
                         ,msgParts[3]);break;
+                case FORWARD: setRoboStatus(statusMapping.get("f"));moveRobot(true);break;
+                case REVERSE: setRoboStatus(statusMapping.get("r"));moveRobot(false);break;
+                case LEFT_TURN: setRoboStatus(statusMapping.get("tl"));rotateRobot(imgRobot,-90);break;
+                case RIGHT_TURN: setRoboStatus(statusMapping.get("tr"));rotateRobot(imgRobot,90);break;
+                case IMAGE_SCAN: setRoboStatus(statusMapping.get("image"));break;
 
             }
         }
@@ -266,6 +283,7 @@ public class StatusFragment extends Fragment {
                         return;
                     }
                     moveRobot(true);
+                    sendMessageToRPI(FORWARD);
 //                    Toast.makeText(getContext(), "Forward", Toast.LENGTH_SHORT).show();
                 }
             });
@@ -277,6 +295,7 @@ public class StatusFragment extends Fragment {
                         return;
                     }
                     moveRobot(false);
+                    sendMessageToRPI(REVERSE);
 //                    Toast.makeText(getContext(), "Reverse", Toast.LENGTH_SHORT).show();
                 }
             });
@@ -288,7 +307,7 @@ public class StatusFragment extends Fragment {
                         return;
                     }
                     rotateRobot(imgRobot,-90);
-                    sendMessageToRPI("LEFT_TURN");
+                    sendMessageToRPI(LEFT_TURN);
 //                    Toast.makeText(getContext(), "Turning left", Toast.LENGTH_SHORT).show();
                 }
             });
@@ -300,7 +319,7 @@ public class StatusFragment extends Fragment {
                         return;
                     }
                     rotateRobot(imgRobot,90);
-                    sendMessageToRPI("RIGHT_TURN");
+                    sendMessageToRPI(RIGHT_TURN);
 //                    Toast.makeText(getContext(), "Turning right", Toast.LENGTH_SHORT).show();
                 }
             });
@@ -370,9 +389,6 @@ public class StatusFragment extends Fragment {
                 spawnRobot(btn);
                 sendSpawnRobot();
             }
-            // (FIX) sendSpawnRobot() sends position of robot via bluetooth,
-            // can uncomment once method is completed below
-
             // adds obstacle otherwise
             if (spawn.equals("Obstacle")) {
                 for (int obsID = 1; obsID <= 8; obsID++) {
@@ -598,8 +614,6 @@ public class StatusFragment extends Fragment {
         imgRobot.setOnClickListener(robot -> {
             rotateRobot(robot, 90);
             sendSpawnRobot();
-
-            // (FIX) Uncomment when sendSpawnRobot() method is completed
         });
     }
 
@@ -624,6 +638,8 @@ public class StatusFragment extends Fragment {
         }
         obstacles.clear();
         imgRobot.setVisibility(View.GONE);
+        robotX = -1;
+        robotY = -1;
 
 //        setRoboStatus("Status");
         setRoboDirection("Direction");
@@ -645,6 +661,9 @@ public class StatusFragment extends Fragment {
 
     // to rotate the robot
     public void rotateRobot(View v, int rotation) {
+        if(robotX==-1 || robotY==-1){
+            return;
+        }
         if (v == null)
             v = imgRobot;
 
@@ -674,17 +693,15 @@ public class StatusFragment extends Fragment {
 // need to check called from main act
     public void moveRobot(boolean forward) {
         if(robotY==-1 || robotX==-1){
-            Toast.makeText(getContext(),"Please place the robot on the map first",Toast.LENGTH_SHORT).show();
+//            Toast.makeText(getContext(),"Please place the robot on the map first",Toast.LENGTH_SHORT).show();
             return;
         }
         int multiplier;
         if(forward){
-           multiplier = 1;
-           sendMessageToRPI("FORWARD");
+            multiplier = 1;
         }
         else{
             multiplier = -1;
-            sendMessageToRPI("REVERSE");
         }
         switch (robotDirection) {
             case NORTH:

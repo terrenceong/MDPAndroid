@@ -90,13 +90,24 @@ public class Constant {
 
     public static final String HANDSHAKE = "READYRPI2A";
 
+    public static final String FORWARD = "FORWARD";
+
+    public static final String REVERSE = "REVERSE";
+
+    public static final String LEFT_TURN = "LEFT_TURN";
+
+    public static final String RIGHT_TURN = "RIGHT_TURN";
+
+    public static final String IMAGE_SCAN = "IMAGE_SCAN";
+
     public static final Map<String,String> statusMapping = new HashMap<String,String>(){
         {
-            put("ready","Ready to start");
-            put("search","Looking for target");
-            put("image","Image detected");
-            put("f","Moving forward");
-            put("tr","Making a right turn");
-            put("tl","Making a left turn");
+            put("ready","ready to start");
+            put("search","looking for target");
+            put("image","image detected");
+            put("f","moving forward");
+            put("tr","making a right turn");
+            put("tl","making a left turn");
+            put("r","reversing");
         }};
 }

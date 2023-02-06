@@ -16,11 +16,6 @@
         android:label="Status"
         tools:layout="@layout/fragment_status" />
     <fragment
-        android:id="@+id/mapConfigFragment"
-        android:name="com.example.ay22_23s2mdpgrp9.mapconfig.MapConfigFragment"
-        android:label="Map Configuration"
-        tools:layout="@layout/fragment_map_config" />
-    <fragment
         android:id="@+id/controllerFragment"
         android:name="com.example.ay22_23s2mdpgrp9.controller.ControllerFragment"
         android:label="Controller"
