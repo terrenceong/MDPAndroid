@@ -18,6 +18,7 @@ import static com.example.ay22_23s2mdpgrp9.constant.Constant.TARGET;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.WEST;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.statusMapping;
 
+import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -77,6 +78,7 @@ public class StatusFragment extends Fragment {
 
     //drawn is the variable that keep tracks how many grid the table layout have drawn
     //btnH,bthW is the grid height and grid width
+    BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     int x, y, btnH, btnW, drawn = 0;
     // grid drawable background
     Drawable btnBG = null;
@@ -124,8 +126,6 @@ public class StatusFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
-
-
     @Override
     public void onPause() {
         super.onPause();
@@ -190,7 +190,7 @@ public class StatusFragment extends Fragment {
         imageRecBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(!MainActivity.hasBtConnectedDevice || MainActivity.globalBluetoothService ==null){
+                if( !bluetoothAdapter.isEnabled()|| !MainActivity.hasBtConnectedDevice || MainActivity.globalBluetoothService ==null){
                     Toast.makeText(getContext(), "Connection not establish", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -205,7 +205,7 @@ public class StatusFragment extends Fragment {
         fastestCarBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(!MainActivity.hasBtConnectedDevice || MainActivity.globalBluetoothService ==null){
+                if(!bluetoothAdapter.isEnabled() || !MainActivity.hasBtConnectedDevice || MainActivity.globalBluetoothService ==null){
                     Toast.makeText(getContext(), "Connection not establish", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -278,7 +278,7 @@ public class StatusFragment extends Fragment {
             forwardBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if(!MainActivity.hasBtConnectedDevice || MainActivity.globalBluetoothService ==null){
+                    if(!bluetoothAdapter.isEnabled() || !MainActivity.hasBtConnectedDevice || MainActivity.globalBluetoothService ==null){
                         Toast.makeText(getContext(), "Connection not establish", Toast.LENGTH_SHORT).show();
                         return;
                     }
@@ -290,7 +290,7 @@ public class StatusFragment extends Fragment {
             reverseBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if(!MainActivity.hasBtConnectedDevice || MainActivity.globalBluetoothService ==null){
+                    if(!bluetoothAdapter.isEnabled() || !MainActivity.hasBtConnectedDevice || MainActivity.globalBluetoothService ==null){
                         Toast.makeText(getContext(), "Connection not establish", Toast.LENGTH_SHORT).show();
                         return;
                     }
@@ -302,7 +302,7 @@ public class StatusFragment extends Fragment {
             leftTurnBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if(!MainActivity.hasBtConnectedDevice || MainActivity.globalBluetoothService ==null){
+                    if(!bluetoothAdapter.isEnabled() || !MainActivity.hasBtConnectedDevice || MainActivity.globalBluetoothService ==null){
                         Toast.makeText(getContext(), "Connection not establish", Toast.LENGTH_SHORT).show();
                         return;
                     }
@@ -314,7 +314,7 @@ public class StatusFragment extends Fragment {
             rightTurnBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if(!MainActivity.hasBtConnectedDevice || MainActivity.globalBluetoothService ==null){
+                    if(!bluetoothAdapter.isEnabled() || !MainActivity.hasBtConnectedDevice || MainActivity.globalBluetoothService ==null){
                         Toast.makeText(getContext(), "Connection not establish", Toast.LENGTH_SHORT).show();
                         return;
                     }
@@ -369,7 +369,7 @@ public class StatusFragment extends Fragment {
         @Override
         public void onClick(View view) {
 //             stops listener if not connected via bluetooth yet
-            if (!MainActivity.hasBtConnectedDevice || MainActivity.globalBluetoothService==null) {
+            if (!bluetoothAdapter.isEnabled() || !MainActivity.hasBtConnectedDevice || MainActivity.globalBluetoothService==null) {
                 Toast.makeText(getContext(),"Connection not established",Toast.LENGTH_LONG).show();
                 return;
             }
@@ -620,8 +620,6 @@ public class StatusFragment extends Fragment {
 
     // Clears all cells back to default state
     public void reset() {
-        if(!MainActivity.hasBtConnectedDevice || MainActivity.globalBluetoothService==null)
-            return;
         this.determinedImageIV.setImageDrawable(null);
         Set<Integer> keys = obstacles.keySet();
 
@@ -640,11 +638,14 @@ public class StatusFragment extends Fragment {
         imgRobot.setVisibility(View.GONE);
         robotX = -1;
         robotY = -1;
-
-//        setRoboStatus("Status");
+        setRoboStatus("Not Connected");
         setRoboDirection("Direction");
         setRobotPosition("(x,y)");
-        sendMessageToRPI("RESET");
+        if(bluetoothAdapter.isEnabled() && MainActivity.hasBtConnectedDevice && MainActivity.globalBluetoothService!=null){
+            setRoboStatus("Connected");
+            sendMessageToRPI("RESET");
+            sendMessageToRPI(READY);
+        }
 
         // (FIX) Same as above -> create methods and textview then display position
     }
