@@ -26,6 +26,7 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 
@@ -129,10 +130,9 @@ public class StatusFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        reset();
+        reset(true);
 
     }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -174,6 +174,7 @@ public class StatusFragment extends Fragment {
             }
             return true;
         });
+//        MainActivity.mProgressDialog.dismiss();
 
         //(FIX) Not sure what the above 2 lines are for
 
@@ -184,7 +185,7 @@ public class StatusFragment extends Fragment {
             @Override
             public void onClick(View view)
             {
-                reset();
+                reset(false);
             }
         });
         imageRecBtn.setOnClickListener(new View.OnClickListener() {
@@ -619,7 +620,7 @@ public class StatusFragment extends Fragment {
 
 
     // Clears all cells back to default state
-    public void reset() {
+    public void reset(boolean isPause)  {
         this.determinedImageIV.setImageDrawable(null);
         Set<Integer> keys = obstacles.keySet();
 
@@ -642,10 +643,19 @@ public class StatusFragment extends Fragment {
         setRoboDirection("Direction");
         setRobotPosition("(x,y)");
         if(bluetoothAdapter.isEnabled() && MainActivity.hasBtConnectedDevice && MainActivity.globalBluetoothService!=null){
-            setRoboStatus("Connected");
             sendMessageToRPI("RESET");
-            sendMessageToRPI(READY);
+            setRoboStatus("Connected");
+            if(!isPause){
+                try{
+                    Thread.sleep(500L);
+                    sendMessageToRPI(READY);
+
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
         }
+
 
         // (FIX) Same as above -> create methods and textview then display position
     }

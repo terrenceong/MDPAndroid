@@ -13,14 +13,15 @@ import android.content.Context;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import com.example.ay22_23s2mdpgrp9.bluetooth.BluetoothConnectionService;
 import com.example.ay22_23s2mdpgrp9.status.StatusFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationView;
 
 
-
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity{
 
     public static boolean hasBtConnectedDevice = false;
     public static BluetoothConnectionService globalBluetoothService = null;
@@ -31,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
 
     public static Context statusFragmentContext = null;
 
-    private static ProgressDialog mProgressDialog;
+    public static ProgressDialog mProgressDialog;
 
     StatusFragment fragmentMap;
 
@@ -44,50 +45,36 @@ public class MainActivity extends AppCompatActivity {
                 R.id.controllerFragment).build();
         NavController navController = Navigation.findNavController(this,  R.id.fragmentContainerView);
         NavigationUI.setupWithNavController(bottomNavigationView, navController);
-        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+        NavigationUI.setupActionBarWithNavController(this, navController,appBarConfiguration);
+//        bottomNavigationView.setOnNavigationItemSelectedListener(this);
+//        mProgressDialog = new ProgressDialog(this);
+//        mProgressDialog.setMessage("Loading...");
+//        mProgressDialog.setCancelable(false);
         getSupportActionBar().hide();
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
 
     }
-    
-    public static void showSimpleProgressDialog(Context context, String title,
-                                                String msg, boolean isCancelable) {
-        try {
-            if (mProgressDialog == null) {
-                mProgressDialog = ProgressDialog.show(context, title, msg);
-                mProgressDialog.setCancelable(isCancelable);
-            }
 
-            if (!mProgressDialog.isShowing()) {
-                mProgressDialog.show();
-            }
+//    @Override
+//    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+//        switch(item.getItemId()){
+//            case R.id.bluetoothFragment: Navigation.findNavController(
+//                    this, R.id.fragmentContainerView).navigate(R.id.bluetoothFragment);
+//            break;
+//            case R.id.statusFragment:
+//                mProgressDialog.show();
+//                    Navigation.findNavController(
+//                    this, R.id.fragmentContainerView).navigate(R.id.statusFragment);
+//            break;
+//            case R.id.controllerFragment: Navigation.findNavController(
+//                    this, R.id.fragmentContainerView).navigate(R.id.controllerFragment);
+//            break;
+//
+//        }
+//        return true;
+//
+//    }
 
-        } catch (IllegalArgumentException ie) {
-            ie.printStackTrace();
-        } catch (RuntimeException re) {
-            re.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    public static void removeSimpleProgressDialog() {
-        try {
-            if (mProgressDialog != null) {
-                if (mProgressDialog.isShowing()) {
-                    mProgressDialog.dismiss();
-                    mProgressDialog = null;
-                }
-            }
-        } catch (IllegalArgumentException ie) {
-            ie.printStackTrace();
-
-        } catch (RuntimeException re) {
-            re.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
 
 //    private void rpiMessageHandler(JSONObject json) throws JSONException {
 //        JSONObject val = (json.has("value")) ? json.getJSONObject("value") : null;
