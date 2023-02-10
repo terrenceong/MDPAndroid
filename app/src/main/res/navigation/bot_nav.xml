@@ -15,9 +15,4 @@
         android:name="com.example.ay22_23s2mdpgrp9.status.StatusFragment"
         android:label="Status"
         tools:layout="@layout/fragment_status" />
-    <fragment
-        android:id="@+id/controllerFragment"
-        android:name="com.example.ay22_23s2mdpgrp9.controller.ControllerFragment"
-        android:label="Controller"
-        tools:layout="@layout/fragment_controller" />
 </navigation>

@@ -104,7 +104,7 @@ public class Constant {
         {
             put("ready","ready to start");
             put("search","looking for target");
-            put("image","image detected");
+            put("image","target detected");
             put("f","moving forward");
             put("tr","making a right turn");
             put("tl","making a left turn");

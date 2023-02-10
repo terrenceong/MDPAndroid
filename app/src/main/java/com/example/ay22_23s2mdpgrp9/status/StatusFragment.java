@@ -6,7 +6,6 @@ import static android.view.DragEvent.ACTION_DROP;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.EAST;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.FORWARD;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.HANDSHAKE;
-import static com.example.ay22_23s2mdpgrp9.constant.Constant.IMAGE_SCAN;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.LEFT_TURN;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.NORTH;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.READY;
@@ -25,8 +24,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 
@@ -230,6 +227,7 @@ public class StatusFragment extends Fragment {
                         if(obstacles.containsKey(Integer.parseInt(msgParts[1]))){
                             updateDetectedImage(obstacles.get(Integer.parseInt(msgParts[1]))
                                     ,Integer.parseInt(msgParts[2]));
+                            setRoboStatus(statusMapping.get("image"));
                         }
                         break;
                 case ROBOT: setRobotXY(Integer.parseInt(msgParts[1]),Integer.parseInt(msgParts[2])
@@ -238,7 +236,6 @@ public class StatusFragment extends Fragment {
                 case REVERSE: setRoboStatus(statusMapping.get("r"));moveRobot(false);break;
                 case LEFT_TURN: setRoboStatus(statusMapping.get("tl"));rotateRobot(imgRobot,-90);break;
                 case RIGHT_TURN: setRoboStatus(statusMapping.get("tr"));rotateRobot(imgRobot,90);break;
-                case IMAGE_SCAN: setRoboStatus(statusMapping.get("image"));break;
 
             }
         }
@@ -786,7 +783,7 @@ public class StatusFragment extends Fragment {
         + "(" + obstacleInfo.x+ ","+obstacleInfo.y+")");
         ArenaButton btn = mapTable.findViewById(coord[obstacleInfo.x][obstacleInfo.y]);
         btn.setBackground(AppCompatResources.getDrawable(
-                MainActivity.statusFragmentContext, R.drawable.border_detected_blue));
+                MainActivity.statusFragmentContext, R.drawable.border_detected_pink));
         btn.setText(String.valueOf(targetID));
         this.determinedImageIV.setImageResource(Constant.imageMapping.get(targetID));
     }
