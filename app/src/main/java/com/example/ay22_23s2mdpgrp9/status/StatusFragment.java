@@ -174,7 +174,7 @@ public class StatusFragment extends Fragment {
             }
             return true;
         });
-//        MainActivity.mProgressDialog.dismiss();
+
 
         //(FIX) Not sure what the above 2 lines are for
 
@@ -718,42 +718,42 @@ public class StatusFragment extends Fragment {
             case NORTH:
                 if(forward && robotY < 18)
                 {
-                    imgRobot.setY(imgRobot.getY() - dpToPixels(25) * multiplier);
                     robotY += 1;
+                    imgRobot.setY(imgRobot.getY() - dpToPixels(25) * multiplier);
                 }
                 else if(!forward && robotY > 0){
-                    imgRobot.setY(imgRobot.getY() - dpToPixels(25) * multiplier);
                     robotY -= 1;
+                    imgRobot.setY(imgRobot.getY() - dpToPixels(25) * multiplier);
                 }
                 break;
             case SOUTH:
                 if(forward && robotY > 0){
-                    imgRobot.setY(imgRobot.getY() + dpToPixels(25) * multiplier);
                     robotY -= 1;
+                    imgRobot.setY(imgRobot.getY() + dpToPixels(25) * multiplier);
                 }
                 else if(!forward && robotY < 18){
-                    imgRobot.setY(imgRobot.getY() + dpToPixels(25) * multiplier);
                     robotY += 1;
+                    imgRobot.setY(imgRobot.getY() + dpToPixels(25) * multiplier);
                 }
                 break;
             case WEST:
                 if(forward && robotX > 0){
-                    imgRobot.setX(imgRobot.getX() - dpToPixels(25) * multiplier);
                     robotX -= 1;
+                    imgRobot.setX(imgRobot.getX() - dpToPixels(25) * multiplier);
                 }
                 else if(!forward && robotX < 18){
-                    imgRobot.setX(imgRobot.getX() - dpToPixels(25) * multiplier);
                     robotX += 1;
+                    imgRobot.setX(imgRobot.getX() - dpToPixels(25) * multiplier);
                 }
                 break;
             case EAST:
                 if(forward && robotX < 18){
-                    imgRobot.setX(imgRobot.getX() + dpToPixels(25) * multiplier);
                     robotX += 1;
+                    imgRobot.setX(imgRobot.getX() + dpToPixels(25) * multiplier);
                 }
                 else if(!forward && robotX > 0){
-                    imgRobot.setX(imgRobot.getX() + dpToPixels(25) * multiplier);
                     robotX -= 1;
+                    imgRobot.setX(imgRobot.getX() + dpToPixels(25) * multiplier);
                 }
                 break;
 
@@ -786,7 +786,7 @@ public class StatusFragment extends Fragment {
         + "(" + obstacleInfo.x+ ","+obstacleInfo.y+")");
         ArenaButton btn = mapTable.findViewById(coord[obstacleInfo.x][obstacleInfo.y]);
         btn.setBackground(AppCompatResources.getDrawable(
-                MainActivity.statusFragmentContext, R.drawable.border_detected));
+                MainActivity.statusFragmentContext, R.drawable.border_detected_blue));
         btn.setText(String.valueOf(targetID));
         this.determinedImageIV.setImageResource(Constant.imageMapping.get(targetID));
     }
