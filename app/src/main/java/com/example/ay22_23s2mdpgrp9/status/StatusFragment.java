@@ -628,6 +628,7 @@ public class StatusFragment extends Fragment {
             ArenaButton btn = mapTable.findViewById(btnID);
 
             btn.setText("");
+            btn.setTextColor(getActivity().getResources().getColor(android.R.color.white,getActivity().getTheme()));
             btn.obstacleID = -1;
             btn.setBackground(btnBG);
             btn.setOnLongClickListener(null);
@@ -782,9 +783,23 @@ public class StatusFragment extends Fragment {
         Log.d(TAG,"Updating obstacle id:" +  obstacleInfo.obstacleID + " to target id:" + targetID + " at coordinate "
         + "(" + obstacleInfo.x+ ","+obstacleInfo.y+")");
         ArenaButton btn = mapTable.findViewById(coord[obstacleInfo.x][obstacleInfo.y]);
-        btn.setBackground(AppCompatResources.getDrawable(
-                MainActivity.statusFragmentContext, R.drawable.border_detected_pink));
+        switch(obstacleInfo.dir){
+            case NORTH:  btn.setBackground(AppCompatResources.getDrawable(
+                    MainActivity.statusFragmentContext, R.drawable.top_border_detected));
+            break;
+            case EAST: btn.setBackground(AppCompatResources.getDrawable(
+                    MainActivity.statusFragmentContext, R.drawable.right_border_detected));
+            break;
+            case WEST:
+                    btn.setBackground(AppCompatResources.getDrawable(
+                            MainActivity.statusFragmentContext, R.drawable.left_border_detected));
+            break;
+            case  SOUTH: btn.setBackground(AppCompatResources.getDrawable(
+                    MainActivity.statusFragmentContext, R.drawable.bottom_border_detected));
+            break;
+        }
         btn.setText(String.valueOf(targetID));
+        btn.setTextColor(getActivity().getResources().getColor(android.R.color.black,getActivity().getTheme()));
         this.determinedImageIV.setImageResource(Constant.imageMapping.get(targetID));
     }
 
