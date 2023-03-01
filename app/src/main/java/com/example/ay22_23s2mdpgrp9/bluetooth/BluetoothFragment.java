@@ -357,6 +357,7 @@ public class BluetoothFragment extends Fragment {
         if (this.btAdapter == null) {
             Log.d(TAG, "toggleOnOff: Does not have BT functionality");
         } else if (!btAdapter.isEnabled()) {
+            //enable bt
             Intent enableBTIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivity(enableBTIntent);
             IntentFilter bTIntent = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
@@ -367,12 +368,16 @@ public class BluetoothFragment extends Fragment {
                 getActivity().requestPermissions(new String[]{
                         Manifest.permission.BLUETOOTH_CONNECT}, BT_ENABLE_REQUEST_CODE); //Any number
             }
+            //turn off blue tooth
             btAdapter.disable();
             clearListView();
             if(MainActivity.hasBtConnectedDevice){
                 MainActivity.hasBtConnectedDevice = false;
             }
+            MainActivity.connectedDevice = null;
+            MainActivity.globalBluetoothService=null;
             Toast.makeText(getContext(), "Bluetooth turning off", Toast.LENGTH_LONG).show();
+            //register broadcast receiver for action_state_changed
             IntentFilter bTIntent = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
             getActivity().registerReceiver(mBroadcastReceiver1, bTIntent);
             b1Registered = true;
@@ -400,6 +405,7 @@ public class BluetoothFragment extends Fragment {
         if(!btAdapter.isEnabled()){
             Toast.makeText(getContext(),"Bluetooth is off. Please turn on bluetooth",Toast.LENGTH_LONG).show();
         }
+        //location is required to search for available devices
         else if(!locationCheck()){
             buildAlertMessageNoGps();
         }

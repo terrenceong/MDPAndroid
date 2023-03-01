@@ -6,22 +6,29 @@ import static android.view.DragEvent.ACTION_DROP;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.EAST;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.FORWARD;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.HANDSHAKE;
-import static com.example.ay22_23s2mdpgrp9.constant.Constant.LEFT_TURN;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.NORTH;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.READY;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.REVERSE;
-import static com.example.ay22_23s2mdpgrp9.constant.Constant.RIGHT_TURN;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.ROBOT;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.SOUTH;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.TARGET;
+import static com.example.ay22_23s2mdpgrp9.constant.Constant.TURN_LEFT_GEAR_BACKWARD;
+import static com.example.ay22_23s2mdpgrp9.constant.Constant.TURN_LEFT_GEAR_FORWARD;
+import static com.example.ay22_23s2mdpgrp9.constant.Constant.TURN_RIGHT_GEAR_BACKWARD;
+import static com.example.ay22_23s2mdpgrp9.constant.Constant.TURN_RIGHT_GEAR_FORWARD;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.WEST;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.statusMapping;
 
+import android.animation.Animator;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Path;
 import android.os.Bundle;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -65,6 +72,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 
@@ -220,7 +228,9 @@ public class StatusFragment extends Fragment {
         public void onReceive(Context context, Intent intent) {
             Log.d(TAG, "Receiver Incoming message");
             String msg = intent.getStringExtra("receivingMsg");
-            String [] msgParts = msg.split(",");
+            Log.d(TAG,"Incoming Msg: " + msg);
+            String [] msgParts = msg.split("\\|");
+            Log.d(TAG,"msgParts[0]: " + msgParts[0].toUpperCase());
             switch(msgParts[0].toUpperCase()){
                 case HANDSHAKE: setRoboStatus(statusMapping.get("ready")); break;
                 case TARGET:
@@ -230,12 +240,13 @@ public class StatusFragment extends Fragment {
                             setRoboStatus(statusMapping.get("image"));
                         }
                         break;
-                case ROBOT: setRobotXY(Integer.parseInt(msgParts[1]),Integer.parseInt(msgParts[2])
-                        ,msgParts[3]);break;
-                case FORWARD: setRoboStatus(statusMapping.get("f"));moveRobot(true);break;
-                case REVERSE: setRoboStatus(statusMapping.get("r"));moveRobot(false);break;
-                case LEFT_TURN: setRoboStatus(statusMapping.get("tl"));rotateRobot(imgRobot,-90);break;
-                case RIGHT_TURN: setRoboStatus(statusMapping.get("tr"));rotateRobot(imgRobot,90);break;
+                case ROBOT: updateRobotLiveLocation(msgParts);break;
+//                case FORWARD: setRoboStatus(statusMapping.get("f"));moveRobot(true);break;
+//                case REVERSE: setRoboStatus(statusMapping.get("r"));moveRobot(false);break;
+//                case TURN_LEFT_GEAR_FORWARD: setRoboStatus(statusMapping.get("tlgf"));rotateRobot(imgRobot,-90);break;
+//                case TURN_RIGHT_GEAR_FORWARD: setRoboStatus(statusMapping.get("trgf"));rotateRobot(imgRobot,90);break;
+//                case TURN_RIGHT_GEAR_BACKWARD: setRoboStatus(statusMapping.get("trgb")); break;
+//                case TURN_LEFT_GEAR_BACKWARD:  setRoboStatus(statusMapping.get("tlgb"));break;
 
             }
         }
@@ -255,7 +266,7 @@ public class StatusFragment extends Fragment {
             row.setHorizontalGravity(Gravity.CENTER_HORIZONTAL);
 
             for (x = 0; x < 20; x++) {
-                ArenaButton btn = new ArenaButton(this.getContext(), x, y);
+                ArenaButton btn = new ArenaButton(this.getContext(), x, (19-y));
                 btn.setId(View.generateViewId());
                 btn.setPadding(1, 1, 1, 1);
                 btn.setBackground(btnBG);
@@ -263,10 +274,10 @@ public class StatusFragment extends Fragment {
                 //set it to white
                 btn.setTextColor(Color.rgb(255, 255, 255));
 
-                coord[x][y] = btn.getId();
+                coord[x][19-y] = btn.getId();
 
-                btn.setOnClickListener(new MapBtnClickListener(x, y, btn.getId()));
-                btn.setOnDragListener(new BtnDragListener(x, y, btn.getId()));
+                btn.setOnClickListener(new MapBtnClickListener(x, (19-y), btn.getId()));
+                btn.setOnDragListener(new BtnDragListener(x, (19-y), btn.getId()));
                 row.addView(btn);
             }
             mapTable.addView(row);
@@ -305,7 +316,7 @@ public class StatusFragment extends Fragment {
                         return;
                     }
                     rotateRobot(imgRobot,-90);
-                    sendMessageToRPI(LEFT_TURN);
+                    sendMessageToRPI(TURN_LEFT_GEAR_FORWARD);
 //                    Toast.makeText(getContext(), "Turning left", Toast.LENGTH_SHORT).show();
                 }
             });
@@ -317,7 +328,7 @@ public class StatusFragment extends Fragment {
                         return;
                     }
                     rotateRobot(imgRobot,90);
-                    sendMessageToRPI(RIGHT_TURN);
+                    sendMessageToRPI(TURN_RIGHT_GEAR_FORWARD);
 //                    Toast.makeText(getContext(), "Turning right", Toast.LENGTH_SHORT).show();
                 }
             });
@@ -384,7 +395,9 @@ public class StatusFragment extends Fragment {
 
             // adds robot onto map
             if (spawn.equals("Robot")) {
-                spawnRobot(btn);
+                Log.d(TAG,"Robot X:" + btn.x + "Robot Y:" + btn.y);
+                setRobotXY(btn.x,btn.y,90);
+//                spawnRobot(btn);
                 sendSpawnRobot();
             }
             // adds obstacle otherwise
@@ -562,12 +575,12 @@ public class StatusFragment extends Fragment {
     }
 
    private void sendSpawnRobot() {
-        String text = "ROBOT," + robotX + "," + robotY + ",";
+        String text = "ROBOT|" + robotX + "," + robotY + ",";
         switch(robotDirection){
-            case NORTH: text +='N';break;
-            case SOUTH: text+='S';break;
-            case EAST: text+='E';break;
-            case WEST: text+='W';break;
+            case NORTH: text +="N|";break;
+            case SOUTH: text+="S|";break;
+            case EAST: text+="E|";break;
+            case WEST: text+="W|";break;
         }
         byte[] bytes = text.getBytes(Charset.defaultCharset());
        MainActivity.serialChat = new StringBuilder(MainActivity.serialChat.append("This Device:" + text + '\n'));
@@ -584,8 +597,8 @@ public class StatusFragment extends Fragment {
 
     // spawns robot image on button position
     private void spawnRobot(ArenaButton btn) {
-        robotX = btn.x;
-        robotY = btn.y;
+        robotX = btn.x+1;
+        robotY = btn.y-1;
 
         // Display current position of robot on the textview
         // (FIX) Create textview in layout xml
@@ -599,8 +612,9 @@ public class StatusFragment extends Fragment {
         imgRobot.setVisibility(View.VISIBLE);
         // set robot drawing position to bottom left instead of top left
         imgRobot.setX(btn.getX());
-        // 24 for status bar and 50 for placing it 2 buttons up
-        imgRobot.setY(pt[1] - dpToPixels(24) - dpToPixels(25));
+        // 24 for status bar and 50 for placing it 3 buttons up
+        imgRobot.setY(pt[1] - dpToPixels(24) - dpToPixels(25) - dpToPixels(25));
+
 
         //set robot position in textview (x,y)
         setRobotPosition(getPositionString());
@@ -662,6 +676,9 @@ public class StatusFragment extends Fragment {
     private int dpToPixels(int dp) {
         return (int) (dp * MainActivity.statusFragmentContext.getResources().getDisplayMetrics().density);
     }
+    private double dpToPixels(double dp) {
+        return (dp * MainActivity.statusFragmentContext.getResources().getDisplayMetrics().density);
+    }
 
 
     public HashMap<Integer, ObstacleInfo> getObstacles() {
@@ -714,44 +731,132 @@ public class StatusFragment extends Fragment {
         }
         switch (robotDirection) {
             case NORTH:
-                if(forward && robotY < 18)
+                if(forward && robotY > 1)
                 {
-                    robotY += 1;
-                    imgRobot.setY(imgRobot.getY() - dpToPixels(25) * multiplier);
+                    ArenaButton btn = mapTable.findViewById(coord[robotX-1][robotY]);
+                    int[] pt = new int[2];
+                    btn.getLocationInWindow(pt);
+                    ObjectAnimator animateForward = ObjectAnimator.ofFloat(
+                            imgRobot,"y",pt[1]- dpToPixels(24) - dpToPixels(25) - dpToPixels(25)
+                    );
+                    animateForward.setDuration(1000);
+                    animateForward.start();
+                    robotY-=1;
+
+
+                    //https://gamedev.stackexchange.com/questions/53324/discover-x-y-coordinates-given-set-arc-distance-and-rotation
+                    //steer left gear forward
+//                    imgRobot.setX((float) (imgRobot.getX()- dpToPixels(radius) + dpToPixels(radius*Math.cos(angleRad))));
+//                    Log.d(TAG,"New imgRobot X" + (-1*radius + radius*Math.cos(angleRad)));
+//
+//                    imgRobot.setY((float) (imgRobot.getY() - (dpToPixels(radius*Math.sin(angleRad)))));
+//                    Log.d(TAG,"New imgRobot Y" + dpToPixels(radius*Math.sin(angleRad)));
+//                    rotateRobot(imgRobot,-90);
+
+                     //steer right gear forward
+//                    imgRobot.setX((float) (imgRobot.getX()+ dpToPixels(radius) - dpToPixels(radius*Math.cos(angleRad))));
+//                    Log.d(TAG,"New imgRobot X" + (radius - radius*Math.cos(angleRad)));
+//
+//                    imgRobot.setY((float) (imgRobot.getY() - (dpToPixels(radius*Math.sin(angleRad)))));
+//                    Log.d(TAG,"New imgRobot Y" + dpToPixels(radius*Math.sin(angleRad)));
+//                    rotateRobot(imgRobot,90);
+                    //steer left gear backwards
+
+//                    imgRobot.setX((float) (imgRobot.getX() - dpToPixels(radius) + dpToPixels(radius*Math.cos(angleRad))));
+//                    Log.d(TAG,"New imgRobot X" + (-1*radius + radius*Math.cos(angleRad)));
+//
+//                    imgRobot.setY((float) (imgRobot.getY() + (dpToPixels(radius*Math.sin(angleRad)))));
+//                    Log.d(TAG,"New imgRobot Y" + -1*dpToPixels(radius*Math.sin(angleRad)));
+//                    rotateRobot(imgRobot,90);
+
+                    //steer right gearbackwards
+
+//                    imgRobot.setX((float) (imgRobot.getX() + dpToPixels(radius) - dpToPixels(radius*Math.cos(angleRad))));
+//                    Log.d(TAG,"New imgRobot X" + (radius - radius*Math.cos(angleRad)));
+//
+//                    imgRobot.setY((float) (imgRobot.getY() + (dpToPixels(radius*Math.sin(angleRad)))));
+//                    Log.d(TAG,"New imgRobot Y" + -1*dpToPixels(radius*Math.sin(angleRad)));
+//                    rotateRobot(imgRobot,-90);
+
+//                    robotY += 1;
+//                    imgRobot.setY(imgRobot.getY() - (dpToPixels(25)) * multiplier);
+
                 }
-                else if(!forward && robotY > 0){
-                    robotY -= 1;
-                    imgRobot.setY(imgRobot.getY() - dpToPixels(25) * multiplier);
+                else if(!forward && robotY <18){
+                    ArenaButton btn = mapTable.findViewById(coord[robotX-1][robotY+2]);
+                    int[] pt = new int[2];
+                    btn.getLocationInWindow(pt);
+                    ObjectAnimator animateForward = ObjectAnimator.ofFloat(
+                            imgRobot,"y",pt[1]- dpToPixels(24) - dpToPixels(25) - dpToPixels(25)
+                    );
+                    animateForward.setDuration(1000);
+                    animateForward.start();
+                    robotY+=1;
                 }
                 break;
             case SOUTH:
-                if(forward && robotY > 0){
-                    robotY -= 1;
-                    imgRobot.setY(imgRobot.getY() + dpToPixels(25) * multiplier);
+                if(forward && robotY < 18){
+                    ArenaButton btn = mapTable.findViewById(coord[robotX-1][robotY+2]);
+                    int[] pt = new int[2];
+                    btn.getLocationInWindow(pt);
+                    ObjectAnimator animateForward = ObjectAnimator.ofFloat(
+                            imgRobot,"y",pt[1]- dpToPixels(24) - dpToPixels(25) - dpToPixels(25)
+                    );
+                    animateForward.setDuration(1000);
+                    animateForward.start();
+                    robotY+=1;
                 }
-                else if(!forward && robotY < 18){
-                    robotY += 1;
-                    imgRobot.setY(imgRobot.getY() + dpToPixels(25) * multiplier);
+                else if(!forward && robotY > 1){
+                    ArenaButton btn = mapTable.findViewById(coord[robotX-1][robotY]);
+                    int[] pt = new int[2];
+                    btn.getLocationInWindow(pt);
+                    ObjectAnimator animateForward = ObjectAnimator.ofFloat(
+                            imgRobot,"y",pt[1]- dpToPixels(24) - dpToPixels(25) - dpToPixels(25)
+                    );
+                    animateForward.setDuration(1000);
+                    animateForward.start();
+                    robotY-=1;
                 }
                 break;
             case WEST:
-                if(forward && robotX > 0){
-                    robotX -= 1;
-                    imgRobot.setX(imgRobot.getX() - dpToPixels(25) * multiplier);
+                if(forward && robotX > 1){
+                    ArenaButton btn = mapTable.findViewById(coord[robotX-2][robotY+1]);
+
+                    ObjectAnimator animateForward = ObjectAnimator.ofFloat(
+                            imgRobot,"x",btn.getX()
+                    );
+                    animateForward.setDuration(1000);
+                    animateForward.start();
+                    robotX -=1;
                 }
                 else if(!forward && robotX < 18){
-                    robotX += 1;
-                    imgRobot.setX(imgRobot.getX() - dpToPixels(25) * multiplier);
+                    ArenaButton btn = mapTable.findViewById(coord[robotX][robotY+1]);
+                    ObjectAnimator animateForward = ObjectAnimator.ofFloat(
+                            imgRobot,"x",btn.getX()
+                    );
+                    animateForward.setDuration(1000);
+                    animateForward.start();
+                    robotX +=1;
                 }
                 break;
             case EAST:
                 if(forward && robotX < 18){
-                    robotX += 1;
-                    imgRobot.setX(imgRobot.getX() + dpToPixels(25) * multiplier);
+                    ArenaButton btn = mapTable.findViewById(coord[robotX][robotY+1]);
+                    ObjectAnimator animateForward = ObjectAnimator.ofFloat(
+                            imgRobot,"x",btn.getX()
+                    );
+                    animateForward.setDuration(1000);
+                    animateForward.start();
+                    robotX +=1;
                 }
-                else if(!forward && robotX > 0){
-                    robotX -= 1;
-                    imgRobot.setX(imgRobot.getX() + dpToPixels(25) * multiplier);
+                else if(!forward && robotX > 1){
+                    ArenaButton btn = mapTable.findViewById(coord[robotX-2][robotY+1]);
+                    ObjectAnimator animateForward = ObjectAnimator.ofFloat(
+                            imgRobot,"x",btn.getX()
+                    );
+                    animateForward.setDuration(1000);
+                    animateForward.start();
+                    robotX -=1;
                 }
                 break;
 
@@ -760,21 +865,99 @@ public class StatusFragment extends Fragment {
     }
 
     // need to check called from main act
-    public void setRobotXY(int x, int y,String dir) {
+    public void setRobotXY(int x, int y,int dir) {
         x = x < 0 ? 0 : x;
-        x = x > 19 ? 19 : x;
-        y = y < 0 ? 0 : y;
+        x = x > 17 ? 17 : x;
+        y = y < 2 ? 2 : y;
         y = y > 19 ? 19:y;
         int btnID = coord[x][y];
-        switch(dir.toLowerCase()){
-            case "n":robotDirection = NORTH; robotRotation = 0;break;
-            case "e":robotDirection = EAST;robotRotation = 90;break;
-            case "s":robotDirection = SOUTH;robotRotation=180;break;
-            case "w":robotDirection = WEST;robotRotation=270;
+        switch(dir){
+            case 90:robotDirection = NORTH; robotRotation = 0;break;
+            case 0:robotDirection = EAST;robotRotation = 90;break;
+            case 270:robotDirection = SOUTH;robotRotation=180;break;
+            case 180:robotDirection = WEST;robotRotation=270;
         }
 
         ArenaButton btn = mapTable.findViewById(btnID);
         spawnRobot(btn);
+    }
+    public void updateRobotLiveLocation(String[] coordinates) {
+        Log.d(TAG,"update robot live location");
+        List<Float> xAnimationPath = new ArrayList<>();
+        List<Integer> yAnimationPath = new ArrayList<>();
+        List<Integer> xCord = new ArrayList<>();
+        List<Integer> yCord = new ArrayList<>();
+        List<Integer> robotDir = new ArrayList<>();
+        for(int i=1;i<coordinates.length;i++) {
+            String[] parts = coordinates[i].trim().split(",");
+            System.out.println(i + ":" + coordinates[i]);
+            int x = Integer.parseInt(parts[0]);
+            int y = Integer.parseInt(parts[1]);
+            int dir = Integer.parseInt(parts[2]);
+            xCord.add(x);
+            yCord.add(y);
+            robotDir.add(dir);
+            ArenaButton btn = mapTable.findViewById(coord[x-1][y+1]);
+            int[] pt = new int[2];
+            btn.getLocationInWindow(pt);
+            xAnimationPath.add(btn.getX());
+            yAnimationPath.add(pt[1]- dpToPixels(24) - dpToPixels(25) - dpToPixels(25));
+        }
+        int pathNo[] = new int[2];
+        pathNo[0] = 0;
+        AnimatorSet animatorSet = new AnimatorSet();
+        ObjectAnimator animatePathX = ObjectAnimator.ofFloat(imgRobot,"x",xAnimationPath.get(pathNo[0]));
+        ObjectAnimator animatePathY = ObjectAnimator.ofFloat(imgRobot,"y",yAnimationPath.get(pathNo[0]));
+
+        animatorSet.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animator) {
+                switch(robotDir.get(pathNo[0])){
+                    case 90:robotDirection = NORTH; robotRotation = 0;break;
+                    case 0:robotDirection = EAST;robotRotation = 90;break;
+                    case 270:robotDirection = SOUTH;robotRotation=180;break;
+                    case 180:robotDirection = WEST;robotRotation=270;
+                }
+                imgRobot.setPivotX(imgRobot.getWidth() / 2);
+                imgRobot.setPivotY(imgRobot.getHeight() / 2);
+                imgRobot.setRotation(robotRotation);
+                setRoboDirection(getDirectionString());
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animator) {
+                robotX = xCord.get(pathNo[0]);
+                robotY = yCord.get(pathNo[0]);
+                setRobotPosition(getPositionString());
+                pathNo[0]+=1;
+                if(pathNo[0] < xAnimationPath.size()){
+                    if(animatePathX.getPropertyName().equals("x")){
+                        animatePathX.setDuration(1000);
+                        animatePathX.setFloatValues(xAnimationPath.get(pathNo[0]-1),
+                                xAnimationPath.get(pathNo[0]));
+                    }
+                    if(animatePathY.getPropertyName().equals("y")){
+                        animatePathY.setDuration(1000);
+                        animatePathY.setFloatValues(yAnimationPath.get(pathNo[0]-1),
+                                yAnimationPath.get(pathNo[0]));
+                    }
+                    animatorSet.playTogether(animatePathX,animatePathY);
+                    animatorSet.start();
+                }
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animator) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animator) {
+
+            }
+        });
+        animatorSet.playTogether(animatePathX,animatePathY);
+        animatorSet.start();
     }
     private void updateDetectedImage(ObstacleInfo obstacleInfo,int targetID){
         if(targetID < 11 || targetID > 40){
@@ -816,20 +999,20 @@ public class StatusFragment extends Fragment {
     }
 
     private void addObstacleToRPI(int obstacleId,int x,int y,char dir){
-        String text = "ADD," + obstacleId + "," + x + "," + y + "," + dir;
+        String text = "ADD|" + obstacleId + "," + x + "," + y + "," + dir+"|";
         MainActivity.serialChat = new StringBuilder(MainActivity.serialChat.append("This Device:" + text + '\n'));
         byte[] bytes = text.getBytes(Charset.defaultCharset());
         MainActivity.globalBluetoothService.write(bytes);
     }
     private void removeObstacleToRPI(int obstacleId){
-        String text = "REMOVE," + obstacleId;
+        String text = "REMOVE|" + obstacleId +"|";
         MainActivity.serialChat = new StringBuilder(MainActivity.serialChat.append("This Device:" + text + '\n'));
         byte[] bytes = text.getBytes(Charset.defaultCharset());
         MainActivity.globalBluetoothService.write(bytes);
     }
     private void sendMessageToRPI(String text){
-        byte[] bytes = text.getBytes(Charset.defaultCharset());
         MainActivity.serialChat = new StringBuilder(MainActivity.serialChat.append("This Device:" + text + '\n'));
+        byte[] bytes = text.getBytes(Charset.defaultCharset());
         MainActivity.globalBluetoothService.write(bytes);
     }
 

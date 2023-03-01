@@ -90,13 +90,17 @@ public class Constant {
 
     public static final String HANDSHAKE = "READYRPI2A";
 
-    public static final String FORWARD = "FORWARD";
+    public static final String FORWARD = "0";
 
-    public static final String REVERSE = "REVERSE";
+    public static final String REVERSE = "1";
 
-    public static final String LEFT_TURN = "LEFT_TURN";
+    public static final String TURN_LEFT_GEAR_FORWARD = "2";
 
-    public static final String RIGHT_TURN = "RIGHT_TURN";
+    public static final String TURN_LEFT_GEAR_BACKWARD = "3";
+
+    public static final String TURN_RIGHT_GEAR_FORWARD = "4";
+
+    public static final String TURN_RIGHT_GEAR_BACKWARD = "5";
 
     public static final String IMAGE_SCAN = "IMAGE_SCAN";
 
@@ -106,8 +110,10 @@ public class Constant {
             put("search","looking for target");
             put("image","target detected");
             put("f","moving forward");
-            put("tr","making a right turn");
-            put("tl","making a left turn");
+            put("trgf","right turn & gear forward");
+            put("trgb","right turn & gear backward");
+            put("tlgf","left turn & gear forward");
+            put("tlgb","left turn & gear backward");
             put("r","reversing");
         }};
 }
