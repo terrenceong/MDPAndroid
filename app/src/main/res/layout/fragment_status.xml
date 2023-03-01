@@ -8,9 +8,9 @@
 
     <TableLayout
         android:id="@+id/mapTable"
+        android:layout_width="596dp"
+        android:layout_height="523dp"
         android:layout_marginTop="5dp"
-        android:layout_width="match_parent"
-        android:layout_height="500dp"
         android:elevation="2dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -21,10 +21,9 @@
 
     <ImageView
         android:id="@+id/imgRobot"
-        android:layout_width="75dp"
+        android:layout_width="84dp"
         android:layout_height="69dp"
         android:layout_marginTop="1.5dp"
-        android:layout_marginRight="1.5dp"
         android:elevation="3dp"
         android:visibility="invisible"
         app:srcCompat="@drawable/car"
@@ -34,6 +33,7 @@
         android:id="@+id/detectedIV"
         android:layout_width="145dp"
         android:layout_height="145dp"
+        android:layout_marginTop="20dp"
         android:background="@drawable/border_detected"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -141,7 +141,7 @@
         android:id="@+id/linearLayout"
         android:layout_width="200dp"
         android:layout_height="150dp"
-        android:layout_marginTop="511dp"
+        android:layout_marginTop="525dp"
         android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.061"

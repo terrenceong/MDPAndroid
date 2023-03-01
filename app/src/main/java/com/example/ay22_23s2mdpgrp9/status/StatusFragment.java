@@ -65,6 +65,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.example.ay22_23s2mdpgrp9.Arena.ArenaButton;
+import com.example.ay22_23s2mdpgrp9.Arena.ArenaIndex;
 import com.example.ay22_23s2mdpgrp9.Arena.MyDragShadowBuilder;
 import com.example.ay22_23s2mdpgrp9.Arena.ObstacleInfo;
 
@@ -264,6 +265,12 @@ public class StatusFragment extends Fragment {
         for (y = 19; y >= 0; y--) {
             TableRow row = new TableRow(this.getContext());
             row.setHorizontalGravity(Gravity.CENTER_HORIZONTAL);
+            ArenaIndex rowIndex = new ArenaIndex(this.getContext(),String.valueOf(19-y));
+            rowIndex.setText(" "+(19-y)+" ");
+            rowIndex.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
+            //black color
+            rowIndex.setTextColor(getResources().getColor(R.color.pinkyRed));
+            row.addView(rowIndex);
 
             for (x = 0; x < 20; x++) {
                 ArenaButton btn = new ArenaButton(this.getContext(), x, (19-y));
@@ -281,7 +288,25 @@ public class StatusFragment extends Fragment {
                 row.addView(btn);
             }
             mapTable.addView(row);
+            if(y==0){
+                TableRow lastRow = new TableRow(this.getContext());
+                lastRow.setHorizontalGravity(Gravity.CENTER_HORIZONTAL);
+                lastRow.setPadding(30,0,0,0);
+                int k = 0;
+                while(k<20){
+                    ArenaIndex colIndex = new ArenaIndex(this.getContext(),String.valueOf(k));
+                    colIndex.setText(" "+k+" ");
+                    colIndex.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
+                    //black color
+                    colIndex.setTextColor(getResources().getColor(R.color.pinkyRed));
+                    lastRow.addView(colIndex);
+                    ++k;
+                    Log.d(TAG,"Drawing last col index");
+                }
+                mapTable.addView(lastRow);
+            }
         }
+
     }
     private void implementMovementListeners(){
             forwardBtn.setOnClickListener(new View.OnClickListener() {
@@ -315,7 +340,7 @@ public class StatusFragment extends Fragment {
                         Toast.makeText(getContext(), "Connection not establish", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    rotateRobot(imgRobot,-90);
+                    robotTurn(true);
                     sendMessageToRPI(TURN_LEFT_GEAR_FORWARD);
 //                    Toast.makeText(getContext(), "Turning left", Toast.LENGTH_SHORT).show();
                 }
@@ -327,7 +352,7 @@ public class StatusFragment extends Fragment {
                         Toast.makeText(getContext(), "Connection not establish", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    rotateRobot(imgRobot,90);
+                    robotTurn(false);
                     sendMessageToRPI(TURN_RIGHT_GEAR_FORWARD);
 //                    Toast.makeText(getContext(), "Turning right", Toast.LENGTH_SHORT).show();
                 }
@@ -722,13 +747,6 @@ public class StatusFragment extends Fragment {
 //            Toast.makeText(getContext(),"Please place the robot on the map first",Toast.LENGTH_SHORT).show();
             return;
         }
-        int multiplier;
-        if(forward){
-            multiplier = 1;
-        }
-        else{
-            multiplier = -1;
-        }
         switch (robotDirection) {
             case NORTH:
                 if(forward && robotY > 1)
@@ -862,6 +880,154 @@ public class StatusFragment extends Fragment {
 
         }
         setRobotPosition(getPositionString());
+    }
+    public void robotTurn(boolean isLeft){
+        Path path = new Path();
+        ObjectAnimator turnAnimation = null;
+        ObjectAnimator rotateAnimation = null;
+        AnimatorSet animatorSet  = new AnimatorSet();
+        switch(robotDirection){
+            case NORTH:
+                if(!isLeft){
+                    path.arcTo(imgRobot.getX(),(imgRobot.getY()- dpToPixels(25)),
+                            (imgRobot.getX()+2*dpToPixels(25)),(imgRobot.getY()+dpToPixels(25)),
+                            180f,90f,true
+                            );
+                    turnAnimation = ObjectAnimator.ofFloat(imgRobot,"x","y",path);
+                    turnAnimation.setDuration(1000);
+                    rotateAnimation = ObjectAnimator.ofFloat(imgRobot, "rotation", robotRotation, robotRotation+90);
+                    rotateAnimation.setDuration(1000);
+                    animatorSet.playTogether(turnAnimation,rotateAnimation);
+                    animatorSet.start();
+                    robotX+=1;
+                    robotY-=1;
+                    robotRotation = 90;
+                    robotDirection = EAST;
+                }
+                else if(isLeft){
+                    path.arcTo((imgRobot.getX()-2*dpToPixels(25)),(imgRobot.getY()- dpToPixels(25)),
+                            (imgRobot.getX()),(imgRobot.getY()+dpToPixels(25)),
+                            0,-90f,true
+                    );
+                    turnAnimation = ObjectAnimator.ofFloat(imgRobot,"x","y",path);
+                    turnAnimation.setDuration(1000);
+                    rotateAnimation = ObjectAnimator.ofFloat(imgRobot, "rotation", robotRotation, robotRotation-90);
+                    rotateAnimation.setDuration(1000);
+                    animatorSet.playTogether(turnAnimation,rotateAnimation);
+                    animatorSet.start();
+                    robotX-=1;
+                    robotY-=1;
+                    robotRotation = 270;
+                    robotDirection = WEST;
+                }
+                break;
+            case EAST:
+                if(!isLeft){
+                    path.arcTo((imgRobot.getX()- dpToPixels(25)),imgRobot.getY(),
+                            (imgRobot.getX()+dpToPixels(25)),(imgRobot.getY()+2*dpToPixels(25)),
+                            270f,90f,true
+                    );
+                    turnAnimation = ObjectAnimator.ofFloat(imgRobot,"x","y",path);
+                    turnAnimation.setDuration(1000);
+                    rotateAnimation = ObjectAnimator.ofFloat(imgRobot, "rotation", robotRotation, robotRotation+90);
+                    rotateAnimation.setDuration(1000);
+                    animatorSet.playTogether(turnAnimation,rotateAnimation);
+                    animatorSet.start();
+                    robotX+=1;
+                    robotY+=1;
+                    robotRotation = 180;
+                    robotDirection = SOUTH;
+                }
+                else if(isLeft){
+                    path.arcTo((imgRobot.getX()- dpToPixels(25)),imgRobot.getY()-2*dpToPixels(25),
+                            (imgRobot.getX()+dpToPixels(25)),imgRobot.getY(),
+                            90f,-90f,true
+                    );
+                    turnAnimation = ObjectAnimator.ofFloat(imgRobot,"x","y",path);
+                    turnAnimation.setDuration(1000);
+                    rotateAnimation = ObjectAnimator.ofFloat(imgRobot, "rotation", robotRotation, robotRotation-90);
+                    rotateAnimation.setDuration(1000);
+                    animatorSet.playTogether(turnAnimation,rotateAnimation);
+                    animatorSet.start();
+                    robotX+=1;
+                    robotY-=1;
+                    robotRotation = 0;
+                    robotDirection = NORTH;
+                }
+                break;
+            case SOUTH:
+                if(!isLeft){
+                    path.arcTo((imgRobot.getX()- 2*dpToPixels(25)),(imgRobot.getY()+dpToPixels(25)),
+                            (imgRobot.getX()),(imgRobot.getY()+dpToPixels(25)),
+                            0f,90f,true
+                    );
+                    turnAnimation = ObjectAnimator.ofFloat(imgRobot,"x","y",path);
+                    turnAnimation.setDuration(1000);
+                    rotateAnimation = ObjectAnimator.ofFloat(imgRobot, "rotation", robotRotation, robotRotation+90);
+                    rotateAnimation.setDuration(1000);
+                    animatorSet.playTogether(turnAnimation,rotateAnimation);
+                    animatorSet.start();
+                    robotX-=1;
+                    robotY+=1;
+                    robotRotation = 270;
+                    robotDirection = WEST;
+                }
+                else if(isLeft){
+                    path.arcTo(imgRobot.getX(),(imgRobot.getY()+dpToPixels(25)),
+                            (imgRobot.getX()+2*dpToPixels(25)),(imgRobot.getY()+dpToPixels(25)),
+                            180f,-90f,true
+                    );
+                    turnAnimation = ObjectAnimator.ofFloat(imgRobot,"x","y",path);
+                    turnAnimation.setDuration(1000);
+                    rotateAnimation = ObjectAnimator.ofFloat(imgRobot, "rotation", robotRotation, robotRotation-90);
+                    rotateAnimation.setDuration(1000);
+                    animatorSet.playTogether(turnAnimation,rotateAnimation);
+                    animatorSet.start();
+                    robotX+=1;
+                    robotY+=1;
+                    robotRotation = 90;
+                    robotDirection = EAST;
+                }
+                break;
+            case WEST:
+                if(!isLeft){
+                    path.arcTo((imgRobot.getX()- dpToPixels(25)),(imgRobot.getY()-2*dpToPixels(25)),
+                            (imgRobot.getX()+dpToPixels(25)),(imgRobot.getY()),
+                            90f,90f,true
+                    );
+                    turnAnimation = ObjectAnimator.ofFloat(imgRobot,"x","y",path);
+                    turnAnimation.setDuration(1000);
+                    rotateAnimation = ObjectAnimator.ofFloat(imgRobot, "rotation", robotRotation, robotRotation+90);
+                    rotateAnimation.setDuration(1000);
+                    animatorSet.playTogether(turnAnimation,rotateAnimation);
+                    animatorSet.start();
+                    robotX-=1;
+                    robotY-=1;
+                    robotRotation = 0;
+                    robotDirection = NORTH;
+                }
+                else if(isLeft){
+                    path.arcTo((imgRobot.getX()-dpToPixels(25)),(imgRobot.getY()),
+                            (imgRobot.getX()+dpToPixels(25)),(imgRobot.getY()+2*dpToPixels(25)),
+                            270f,-90f,true
+                    );
+                    turnAnimation = ObjectAnimator.ofFloat(imgRobot,"x","y",path);
+                    turnAnimation.setDuration(1000);
+                    rotateAnimation = ObjectAnimator.ofFloat(imgRobot, "rotation", robotRotation, robotRotation-90);
+                    rotateAnimation.setDuration(1000);
+                    animatorSet.playTogether(turnAnimation,rotateAnimation);
+                    animatorSet.start();
+                    robotX-=1;
+                    robotY+=1;
+                    robotRotation = 180;
+                    robotDirection = SOUTH;
+                }
+                break;
+
+
+        }
+        setRobotPosition(getPositionString());
+        setRoboDirection(getDirectionString());
     }
 
     // need to check called from main act
