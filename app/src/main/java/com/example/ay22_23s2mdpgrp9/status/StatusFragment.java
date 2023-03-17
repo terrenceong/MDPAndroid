@@ -17,7 +17,9 @@ import static com.example.ay22_23s2mdpgrp9.constant.Constant.TURN_LEFT_GEAR_FORW
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.TURN_RIGHT_GEAR_BACKWARD;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.TURN_RIGHT_GEAR_FORWARD;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.WEST;
+import static com.example.ay22_23s2mdpgrp9.constant.Constant.imageMapping;
 import static com.example.ay22_23s2mdpgrp9.constant.Constant.statusMapping;
+
 
 import android.animation.Animator;
 import android.animation.AnimatorSet;
@@ -205,7 +207,7 @@ public class StatusFragment extends Fragment {
                     Toast.makeText(getContext(),"Arena is not ready",Toast.LENGTH_SHORT).show();
                     return;
                 }
-                sendMessageToRPI("START_IMAGE_TASK");
+                sendMessageToRPI("START_IMAGE_TASK|0");
                 setRoboStatus(statusMapping.get("search"));
             }
         });
@@ -216,7 +218,7 @@ public class StatusFragment extends Fragment {
                     Toast.makeText(getContext(), "Connection not establish", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                sendMessageToRPI("START_FASTEST_TASK");
+                sendMessageToRPI("START_IMAGE_TASK|1");
             }
         });
         implementMovementListeners();
@@ -235,9 +237,10 @@ public class StatusFragment extends Fragment {
             switch(msgParts[0].toUpperCase()){
                 case HANDSHAKE: setRoboStatus(statusMapping.get("ready")); break;
                 case TARGET:
-                        if(obstacles.containsKey(Integer.parseInt(msgParts[1]))){
-                            updateDetectedImage(obstacles.get(Integer.parseInt(msgParts[1]))
-                                    ,Integer.parseInt(msgParts[2]));
+                        String [] targetParts = msgParts[1].trim().split(",");
+                        if(obstacles.containsKey(Integer.parseInt(targetParts[0]))){
+                            updateDetectedImage(obstacles.get(Integer.parseInt(targetParts[0]))
+                                    ,targetParts[1]);
                             setRoboStatus(statusMapping.get("image"));
                         }
                         break;
@@ -1060,6 +1063,10 @@ public class StatusFragment extends Fragment {
             int x = Integer.parseInt(parts[0]);
             int y = Integer.parseInt(parts[1]);
             int dir = Integer.parseInt(parts[2]);
+            x= x < 1 ? 1:x;
+            x = x > 18 ? 18:x;
+            y = y > 18 ? 18:y;
+            y = y < 1 ? 1:y;
             xCord.add(x);
             yCord.add(y);
             robotDir.add(dir);
@@ -1125,8 +1132,9 @@ public class StatusFragment extends Fragment {
         animatorSet.playTogether(animatePathX,animatePathY);
         animatorSet.start();
     }
-    private void updateDetectedImage(ObstacleInfo obstacleInfo,int targetID){
-        if(targetID < 11 || targetID > 40){
+    private void updateDetectedImage(ObstacleInfo obstacleInfo,String targetID){
+        int id = Integer.parseInt(targetID);
+        if(!imageMapping.containsKey(id)){
             return;
         }
         Log.d(TAG,"Updating obstacle id:" +  obstacleInfo.obstacleID + " to target id:" + targetID + " at coordinate "
@@ -1147,9 +1155,9 @@ public class StatusFragment extends Fragment {
                     MainActivity.statusFragmentContext, R.drawable.bottom_border_detected));
             break;
         }
-        btn.setText(String.valueOf(targetID));
+        btn.setText(String.valueOf(id));
         btn.setTextColor(getActivity().getResources().getColor(android.R.color.black,getActivity().getTheme()));
-        this.determinedImageIV.setImageResource(Constant.imageMapping.get(targetID));
+        this.determinedImageIV.setImageResource(Constant.imageMapping.get(id));
     }
 
     public void setRoboStatus(String status) {

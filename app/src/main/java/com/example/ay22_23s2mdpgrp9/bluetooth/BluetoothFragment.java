@@ -362,6 +362,7 @@ public class BluetoothFragment extends Fragment {
             startActivity(enableBTIntent);
             IntentFilter bTIntent = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
             getActivity().registerReceiver(mBroadcastReceiver1, bTIntent);
+            Log.d(TAG,"#############################################################");
             b1Registered = true;
         } else if (btAdapter.isEnabled()) {
             if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
@@ -376,7 +377,7 @@ public class BluetoothFragment extends Fragment {
             }
             MainActivity.connectedDevice = null;
             MainActivity.globalBluetoothService=null;
-            Toast.makeText(getContext(), "Bluetooth turning off", Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), "Bluetooth turning off", Toast.LENGTH_SHORT).show();
             //register broadcast receiver for action_state_changed
             IntentFilter bTIntent = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
             getActivity().registerReceiver(mBroadcastReceiver1, bTIntent);

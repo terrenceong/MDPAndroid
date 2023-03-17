@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
          BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
-         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(R.id.bluetoothFragment, R.id.statusFragment).build();
+         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(R.id.bluetoothFragment, R.id.statusFragment,R.id.fastestCarFragment).build();
         NavController navController = Navigation.findNavController(this,  R.id.fragmentContainerView);
         NavigationUI.setupWithNavController(bottomNavigationView, navController);
         NavigationUI.setupActionBarWithNavController(this, navController,appBarConfiguration);

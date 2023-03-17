@@ -8,4 +8,7 @@
     <item android:title="Status"
           android:icon="@drawable/ic_status"
           android:id="@+id/statusFragment" />
+    <item android:title="Fastest Car"
+        android:icon="@drawable/ic_time"
+        android:id="@+id/fastestCarFragment" />
 </menu>

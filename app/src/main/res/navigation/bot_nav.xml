@@ -15,4 +15,8 @@
         android:name="com.example.ay22_23s2mdpgrp9.status.StatusFragment"
         android:label="Status"
         tools:layout="@layout/fragment_status" />
+    <fragment
+        android:id="@+id/fastestCarFragment"
+        android:name="com.example.ay22_23s2mdpgrp9.FastestCarFragment.FastestCarFragment"
+        android:label="Fastest Car" />
 </navigation>

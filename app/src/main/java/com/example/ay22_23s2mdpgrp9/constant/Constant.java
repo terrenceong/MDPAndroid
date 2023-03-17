@@ -42,6 +42,74 @@ public class Constant {
 
 
     }};
+//    public static final Map<String,Integer> stringToIdMapping = new HashMap<String,
+//            Integer>(){{
+//        put("Bullseye",0);
+//        put("1",11);
+//        put("2",12);
+//        put("3",13);
+//        put("4",14);
+//        put("5",15);
+//        put("6",16);
+//        put("7",17);
+//        put("8",18);
+//        put("9",19);
+//        put("A",20);
+//        put("B",21);
+//        put("C",22);
+//        put("D",23);
+//        put("E",24);
+//        put("F",25);
+//        put("G",26);
+//        put("H",27);
+//        put("S",28);
+//        put("T",29);
+//        put("U",30);
+//        put("V",31);
+//        put("W",32);
+//        put("X",33);
+//        put("Y",34);
+//        put("Z",35);
+//        put("Up",36);
+//        put("down",37);
+//        put("right",38);
+//        put("Left",39);
+//        put("Stop",40);
+//          /*
+//    - '1'
+//- '2'
+//
+//- '3'
+//- '4'
+//- '5'
+//- '6'
+//- '7'
+//- '8'
+//- '9'
+//- A
+//- B
+//- Bullseye
+//- C
+//- D
+//- E
+//- F
+//- G
+//- H
+//- Left
+//- S
+//- Stop
+//- T
+//- U
+//- Up
+//- V
+//- W
+//- X
+//- Y
+//- Z
+//- down
+//- right
+//     */
+//    }};
 //    public static final Map<Integer,Integer> idMapping = new HashMap<Integer,Integer>() {{
 //        put(11,R.drawable.id_11);
 //        put(12,R.drawable.id_12);
